@@ -1,6 +1,3 @@
-// Configuration file for all URLs used in the website
-// This makes it easy to update URLs in one place
-
 export const urls = {
   // Videos
   videos: {
