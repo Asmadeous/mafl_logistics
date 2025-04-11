@@ -27,4 +27,3 @@ export function useScrollPosition() {
 
   return { scrollPosition, isScrolled }
 }
-

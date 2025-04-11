@@ -1,19 +1,17 @@
 import type React from "react"
 import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
-import ContactPopup from "@/components/contact-popup"
 import "./globals.css"
+import ClientLayout from "./client-layout"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
   title: "MAFL Logistics - Your Trusted Logistics Partner",
   description: "Reliable, Efficient, Innovative Logistics Solutions Across Kenya & East Africa",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
+// Update the RootLayout component to conditionally render the Navbar
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,25 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          storageKey="mafl-theme"
-        >
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <ContactPopup />
-          </div>
-        </ThemeProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )
 }
-
 
 
 import './globals.css'

@@ -4,7 +4,20 @@ import type React from "react"
 
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Calendar, Award, Target, Users, TrendingUp, CheckCircle, Star, Clock, Flag, Zap, BarChart } from "lucide-react"
+import {
+  Calendar,
+  Award,
+  Target,
+  Users,
+  TrendingUp,
+  CheckCircle,
+  Star,
+  Clock,
+  Flag,
+  BarChart,
+  ShieldIcon,
+  Lightbulb,
+} from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -36,44 +49,25 @@ export default function AboutPage() {
 
   const milestones = [
     {
-      year: "2018",
-      title: "Company Founded",
+      year: "2021",
+      title: "Humble Beginnings",
       description:
-        "MAFL Logistics was established in Malili, Kenya by Mahdi M. Issack with a vision to provide reliable logistics solutions across East Africa.",
+        "Founded in 2021, MAFL Logistics started with local freight operations, focusing on delivering reliable & efficient logistics solutions across Kenya.",
       icon: <Flag className="h-6 w-6 text-white" />,
     },
     {
-      year: "2019",
-      title: "Fleet Expansion",
+      year: "2022",
+      title: "Expanding Horizons",
       description:
-        "Expanded our fleet with specialized vehicles for heavy machinery transport and cross-border logistics.",
-      icon: <Truck className="h-6 w-6 text-white" />,
-    },
-    {
-      year: "2020",
-      title: "Regional Expansion",
-      description: "Extended operations to neighboring countries including Uganda, Tanzania, and Rwanda.",
+        "Through investment in technology & strong partnerships, we expanded into regional & cross-border logistics, serving Kenya, Rwanda, & Ethiopia.",
       icon: <Globe className="h-6 w-6 text-white" />,
     },
     {
-      year: "2021",
-      title: "Warehousing Services",
-      description:
-        "Launched comprehensive warehousing and storage solutions to complement our transportation services.",
-      icon: <Warehouse className="h-6 w-6 text-white" />,
-    },
-    {
-      year: "2022",
-      title: "Digital Transformation",
-      description:
-        "Implemented advanced tracking and management systems to enhance operational efficiency and customer experience.",
-      icon: <Zap className="h-6 w-6 text-white" />,
-    },
-    {
       year: "2023",
-      title: "100+ Client Milestone",
-      description: "Celebrated serving over 100 satisfied clients across various industries in East Africa.",
-      icon: <Users className="h-6 w-6 text-white" />,
+      title: "Innovation & Excellence",
+      description:
+        "MAFL Logistics continues to grow by specializing in heavy machinery transport, warehousing, & bulk cargo handling while innovating to meet future logistics needs.",
+      icon: <Lightbulb className="h-6 w-6 text-white" />,
     },
   ]
 
@@ -88,7 +82,7 @@ export default function AboutPage() {
       title: "Amboseli National Park Roads",
       year: "2021",
       description: "Provided road grading and maintenance services to improve accessibility in Amboseli National Park.",
-      icon: <Shield className="h-10 w-10 text-mafl-orange" />,
+      icon: <ShieldIcon className="h-10 w-10 text-mafl-orange" />,
     },
     {
       title: "Cross-Border Logistics Excellence",
@@ -107,7 +101,7 @@ export default function AboutPage() {
     {
       title: "Customer Focus",
       description: "Tailored logistics solutions creating lasting partnerships with clients.",
-      icon: <Shield className="h-8 w-8 text-mafl-orange" />,
+      icon: <ShieldIcon className="h-8 w-8 text-mafl-orange" />,
     },
     {
       title: "Regional & Cross-Border Reach",
@@ -190,8 +184,75 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Milestones Timeline */}
+      {/* CEO Statement */}
       <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              transition={{ duration: 0.5 }}
+              className="md:col-span-4 flex justify-center"
+            >
+              <div className="relative h-[300px] w-[300px] rounded-full overflow-hidden border-4 border-mafl-orange shadow-xl">
+                <Image
+                  src="/placeholder.svg?height=300&width=300"
+                  alt="Mahdi M. Issack - CEO of MAFL Logistics"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="md:col-span-8"
+            >
+              <div className="bg-white dark:bg-mafl-dark/30 p-8 rounded-lg shadow-lg relative">
+                <div className="absolute top-4 left-4 text-mafl-orange opacity-20">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    stroke="none"
+                  >
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                  </svg>
+                </div>
+                <div className="relative z-10">
+                  <h2 className="text-3xl font-bold mb-6">A Message From Our CEO</h2>
+                  <p className="text-lg italic mb-6">
+                    "At MAFL Logistics, we go beyond moving goods, we deliver trust, precision, & value. Committed to
+                    timely & secure deliveries, we continue to invest in technology, expand our fleet, & build strong
+                    partnerships. From heavy machinery transport to warehousing & bulk cargo handling, we are your
+                    reliable logistics partner."
+                  </p>
+                  <p className="text-lg italic mb-6">
+                    "Delivering Excellence: How MAFL Logistics is Redefining Transportation Across Kenya."
+                  </p>
+                  <div className="flex items-center">
+                    <div>
+                      <h4 className="text-xl font-bold">Mahdi M. Issack</h4>
+                      <p className="text-mafl-orange">Founder & CEO, MAFL Logistics</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Milestones Timeline */}
+      <section className="py-16 bg-white dark:bg-mafl-dark/30">
         <div className="container mx-auto px-4">
           <motion.h2
             initial="hidden"
@@ -246,7 +307,7 @@ export default function AboutPage() {
       </section>
 
       {/* Key Achievements */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
+      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
         <div className="container mx-auto px-4">
           <motion.h2
             initial="hidden"
@@ -286,7 +347,7 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
+      <section className="py-16 bg-white dark:bg-mafl-dark/30">
         <div className="container mx-auto px-4">
           <motion.h2
             initial="hidden"
@@ -328,7 +389,7 @@ export default function AboutPage() {
       </section>
 
       {/* Company Highlights */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
+      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
         <div className="container mx-auto px-4">
           <motion.h2
             initial="hidden"
@@ -370,7 +431,7 @@ export default function AboutPage() {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
+      <section className="py-16 bg-white dark:bg-mafl-dark/30">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div
@@ -420,7 +481,7 @@ export default function AboutPage() {
       </section>
 
       {/* Company History Tabs */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
+      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
         <div className="container mx-auto px-4">
           <motion.h2
             initial="hidden"
@@ -454,11 +515,11 @@ export default function AboutPage() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold mb-4">The Beginning (2018)</h3>
+                  <h3 className="text-2xl font-bold mb-4">The Beginning (2021)</h3>
                   <p className="text-muted-foreground mb-4">
-                    MAFL Logistics was founded in 2018 by Mahdi M. Issack with a vision to address the logistics
-                    challenges in Kenya and East Africa. Starting with just two trucks, the company focused on providing
-                    reliable transportation for construction materials and equipment.
+                    MAFL Logistics was founded in 2021 by Mahdi M. Issack with a vision to address the logistics
+                    challenges in Kenya and East Africa. Starting with local freight operations, the company focused on
+                    providing reliable transportation for construction materials and equipment.
                   </p>
                   <p className="text-muted-foreground">
                     The early days were marked by determination and a commitment to excellence, laying the foundation
@@ -471,11 +532,11 @@ export default function AboutPage() {
             <TabsContent value="growth" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h3 className="text-2xl font-bold mb-4">Expansion Years (2019-2021)</h3>
+                  <h3 className="text-2xl font-bold mb-4">Expanding Horizons (2022)</h3>
                   <p className="text-muted-foreground mb-4">
-                    Between 2019 and 2021, MAFL Logistics experienced significant growth, expanding its fleet and
-                    service offerings. The company ventured into cross-border logistics, connecting businesses across
-                    East Africa with efficient transportation solutions.
+                    Through investment in technology and strong partnerships, we expanded into regional and cross-border
+                    logistics, serving Kenya, Rwanda, and Ethiopia. This period marked significant growth for MAFL
+                    Logistics.
                   </p>
                   <p className="text-muted-foreground">
                     During this period, we also established our warehousing division, providing comprehensive logistics
@@ -505,11 +566,12 @@ export default function AboutPage() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold mb-4">MAFL Today (2022-Present)</h3>
+                  <h3 className="text-2xl font-bold mb-4">Innovation & Excellence (2023-Present)</h3>
                   <p className="text-muted-foreground mb-4">
-                    Today, MAFL Logistics stands as a prominent player in the East African logistics industry. With a
-                    modern fleet, state-of-the-art tracking systems, and a team of experienced professionals, we
-                    continue to set new standards in the industry.
+                    MAFL Logistics continues to grow by specializing in heavy machinery transport, warehousing, and bulk
+                    cargo handling while innovating to meet future logistics needs. With a modern fleet,
+                    state-of-the-art tracking systems, and a team of experienced professionals, we continue to set new
+                    standards in the industry.
                   </p>
                   <p className="text-muted-foreground">
                     We've embraced digital transformation to enhance our operations and customer experience, while
@@ -525,7 +587,7 @@ export default function AboutPage() {
       </section>
 
       {/* Company Values */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
+      <section className="py-16 bg-white dark:bg-mafl-dark/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial="hidden"
@@ -569,7 +631,7 @@ export default function AboutPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
+      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
         <div className="container mx-auto px-4">
           <motion.div
             initial="hidden"
@@ -690,44 +752,3 @@ function Warehouse(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
-
-function Shield(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-    </svg>
-  )
-}
-
-function Lightbulb(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
-      <path d="M9 18h6" />
-      <path d="M10 22h4" />
-    </svg>
-  )
-}
-

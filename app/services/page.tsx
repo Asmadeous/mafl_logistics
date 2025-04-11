@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import {
@@ -11,9 +11,10 @@ import {
   Thermometer,
   Package,
   AlertTriangle,
-  ChevronLeft,
   ChevronRight,
+  MapPin,
 } from "lucide-react"
+import { FileContract } from "@/components/icons/file-contract"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -121,15 +122,46 @@ export default function ServicesPage() {
       image: "/images/hazardous-goods.jpg",
       videoUrl: "/videos/hazardous-goods.mp4",
     },
+    {
+      title: "Last-Mile Delivery",
+      description: "Efficient distribution of goods from warehouses to final destinations.",
+      icon: <MapPin className="h-6 w-6 text-mafl-orange" />,
+      longDescription:
+        "Our last-mile delivery service ensures your products reach their final destination efficiently and on time. Ideal for retailers, manufacturers, and wholesalers, we handle the critical final leg of the supply chain with precision and care.",
+      features: [
+        "Efficient distribution from warehouses to final destinations",
+        "Real-time tracking and delivery confirmation",
+        "Flexible scheduling options",
+        "Specialized handling for fragile or high-value items",
+      ],
+      image: "/placeholder.svg?height=300&width=400",
+      videoUrl: null,
+    },
+    {
+      title: "Fleet Leasing & Contract Hauling",
+      description: "Long-term truck leasing services and dedicated fleet solutions for businesses.",
+      icon: <FileContract className="h-6 w-6 text-mafl-orange" />,
+      longDescription:
+        "Our fleet leasing and contract hauling services provide businesses with dedicated transportation solutions without the overhead of maintaining their own fleet. We offer flexible terms and customized arrangements to meet your specific logistics needs.",
+      features: [
+        "Long-term truck leasing services for businesses",
+        "Dedicated fleet solutions tailored to client needs",
+        "Reduced capital expenditure and maintenance costs",
+        "Scalable capacity to meet changing business demands",
+      ],
+      image: "/placeholder.svg?height=300&width=400",
+      videoUrl: null,
+    },
   ]
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === services.length - 1 ? 0 : prev + 1))
-  }
+  // Auto-rotate carousel every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === services.length - 1 ? 0 : prev + 1))
+    }, 3000)
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? services.length - 1 : prev - 1))
-  }
+    return () => clearInterval(interval)
+  }, [services.length])
 
   const openServiceModal = (service: (typeof additionalServices)[0]) => {
     setSelectedService(service)
@@ -225,24 +257,6 @@ export default function ServicesPage() {
                 ))}
               </div>
             </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 dark:bg-mafl-dark/80 backdrop-blur-sm"
-              onClick={prevSlide}
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 dark:bg-mafl-dark/80 backdrop-blur-sm"
-              onClick={nextSlide}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
 
             <div className="flex justify-center mt-6 space-x-2">
               {services.map((_, index) => (
@@ -427,4 +441,3 @@ export default function ServicesPage() {
     </div>
   )
 }
-

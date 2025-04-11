@@ -27,7 +27,21 @@ export function ThemeToggle() {
     const newTheme = resolvedTheme === "dark" ? "light" : "dark"
     setTheme(newTheme)
     setPreferredTheme(newTheme)
+
+    // Force theme change by directly manipulating the DOM
+    if (typeof window !== "undefined") {
+      document.documentElement.classList.remove("light", "dark")
+      document.documentElement.classList.add(newTheme)
+    }
   }
+
+  // Ensure theme is applied on mount
+  useEffect(() => {
+    if (mounted && preferredTheme !== "system") {
+      document.documentElement.classList.remove("light", "dark")
+      document.documentElement.classList.add(preferredTheme)
+    }
+  }, [mounted, preferredTheme])
 
   if (!mounted) {
     return (
@@ -45,4 +59,3 @@ export function ThemeToggle() {
     </Button>
   )
 }
-

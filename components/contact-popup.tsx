@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,31 +18,47 @@ import { Textarea } from "@/components/ui/textarea"
 import { MessageSquare } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
+import { submitContactForm } from "@/app/actions/contact"
 
 export default function ContactPopup() {
   const [isOpen, setIsOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Here you would typically send this to your backend
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you as soon as possible.",
-      variant: "success",
-    })
-    setFormData({ name: "", email: "", phone: "", message: "" })
-    setIsOpen(false)
+    setIsSubmitting(true)
+
+    try {
+      const formData = new FormData(e.currentTarget)
+      const result = await submitContactForm(formData)
+
+      if (result.success) {
+        toast({
+          title: "Message Sent!",
+          description: result.message,
+          variant: "success",
+        })
+        // Reset the form
+        formRef.current?.reset()
+        // Close the dialog
+        setIsOpen(false)
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again later.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Floating button that's always visible
@@ -73,34 +89,29 @@ export default function ContactPopup() {
               Have questions or need assistance? Send us a message and we'll get back to you as soon as possible.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
+          <form ref={formRef} onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
+                <Input id="name" name="name" required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                <Input id="email" name="email" type="email" required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
+                <Input id="phone" name="phone" type="tel" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="message">Message</Label>
-                <Textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  rows={4}
-                  required
-                />
+                <Textarea id="message" name="message" rows={4} required />
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit">Send Message</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Sending..." : "Send Message"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -108,4 +119,3 @@ export default function ContactPopup() {
     </>
   )
 }
-
