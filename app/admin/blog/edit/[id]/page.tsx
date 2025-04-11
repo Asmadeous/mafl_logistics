@@ -76,8 +76,10 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Load the post
+        // Create a single Supabase client instance to use for all operations
         const supabase = getSupabaseClient()
+
+        // Load the post
         const { data: postData, error: postError } = await supabase
           .from("blog_posts")
           .select("*")
@@ -89,7 +91,6 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
         setEditorContent(postData.content || "")
 
         // Load categories
-        const supabase = getSupabaseClient()
         const { data: categoriesData, error: categoriesError } = await supabase
           .from("blog_categories")
           .select("id, name")
@@ -99,14 +100,12 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
         setCategories(categoriesData || [])
 
         // Load tags
-        const supabase = getSupabaseClient()
         const { data: tagsData, error: tagsError } = await supabase.from("blog_tags").select("id, name").order("name")
 
         if (tagsError) throw tagsError
         setTags(tagsData || [])
 
         // Load selected tags for this post
-        const supabase = getSupabaseClient()
         const { data: selectedTagsData, error: selectedTagsError } = await supabase
           .from("blog_posts_tags")
           .select("tag_id")
@@ -194,6 +193,8 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
 
     setSaving(true)
     try {
+      const supabase = getSupabaseClient()
+
       // Prepare post data with the editor content
       const postData = {
         ...post,
@@ -203,14 +204,12 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       }
 
       // Update the post
-      const supabase = getSupabaseClient()
       const { error: updateError } = await supabase.from("blog_posts").update(postData).eq("id", post.id)
 
       if (updateError) throw updateError
 
       // Handle tags (delete existing and insert new)
-      const supabaseClient = getSupabaseClient()
-      const { error: deleteTagsError } = await supabaseClient.from("blog_posts_tags").delete().eq("post_id", post.id)
+      const { error: deleteTagsError } = await supabase.from("blog_posts_tags").delete().eq("post_id", post.id)
 
       if (deleteTagsError) throw deleteTagsError
 
@@ -220,8 +219,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
           tag_id: tagId,
         }))
 
-        const supabaseClient = getSupabaseClient()
-        const { error: insertTagsError } = await supabaseClient.from("blog_posts_tags").insert(tagInserts)
+        const { error: insertTagsError } = await supabase.from("blog_posts_tags").insert(tagInserts)
 
         if (insertTagsError) throw insertTagsError
       }
@@ -235,8 +233,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       if (publish && notifySubscribers) {
         try {
           // Add to notification queue
-          const supabaseClient = getSupabaseClient()
-          await supabaseClient.from("blog_notification_queue").insert([
+          await supabase.from("blog_notification_queue").insert([
             {
               post_id: post.id,
               processed: false,
