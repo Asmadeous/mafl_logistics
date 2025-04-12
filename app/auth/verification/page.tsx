@@ -1,37 +1,50 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { CheckCircle, XCircle } from "lucide-react"
 
 export const metadata = {
-  title: "Verify Email - MAFL Logistics",
-  description: "Verify your email address",
+  title: "Email Verification | MAFL Logistics",
+  description: "Email verification status for your MAFL Logistics account",
 }
 
-export default function VerificationPage() {
+interface VerificationPageProps {
+  searchParams: { success?: string; error?: string }
+}
+
+export default function VerificationPage({ searchParams }: VerificationPageProps) {
+  const success = searchParams.success === "true"
+  const errorMessage = searchParams.error || "Verification failed. The link may be invalid or expired."
+
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="h-12 w-12 text-green-500" />
-          </div>
-          <CardTitle className="text-2xl text-center">Check your email</CardTitle>
-          <CardDescription className="text-center">
-            We've sent you a verification link. Please check your email to verify your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-sm text-muted-foreground">
-            If you don't see the email in your inbox, please check your spam folder.
-          </p>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Link href="/auth/login">
-            <Button variant="outline">Back to Login</Button>
-          </Link>
-        </CardFooter>
-      </Card>
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              {success ? (
+                <CheckCircle className="h-12 w-12 text-green-500" />
+              ) : (
+                <XCircle className="h-12 w-12 text-red-500" />
+              )}
+            </div>
+            <CardTitle className="text-2xl">{success ? "Email Verified" : "Verification Failed"}</CardTitle>
+            <CardDescription>{success ? "Your email has been successfully verified." : errorMessage}</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-sm text-muted-foreground mb-4">
+              {success
+                ? "You can now log in to your account with your credentials."
+                : "Please try again or contact support if the problem persists."}
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Button asChild variant={success ? "default" : "outline"}>
+              <Link href="/auth/login">{success ? "Log In Now" : "Back to Login"}</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   )
 }

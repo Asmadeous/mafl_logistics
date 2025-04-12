@@ -2,95 +2,99 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/hooks/use-toast"
-import { Loader2 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function SetupPage() {
-  const [adminSecret, setAdminSecret] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string | null>(null)
+  const { session } = useAuth()
 
-  const handleSetup = async () => {
-    if (!adminSecret) {
+  const setupDatabase = async () => {
+    if (!session?.access_token) {
       toast({
         title: "Error",
-        description: "Please enter the admin secret",
+        description: "You must be logged in as an admin",
         variant: "destructive",
       })
       return
     }
 
-    setIsLoading(true)
     try {
-      const response = await fetch("/api/admin/setup-db", {
+      setLoading(true)
+      setDebugInfo(null)
+
+      // Log debug info
+      setDebugInfo(`Sending request to: ${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/setup`)
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/setup`, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ authorization: adminSecret }),
       })
 
-      const data = await response.json()
+      const responseText = await response.text()
+      setDebugInfo((prev) => `${prev}\n\nResponse status: ${response.status}\nResponse: ${responseText}`)
+
+      let result
+      try {
+        result = JSON.parse(responseText)
+      } catch (e) {
+        throw new Error(`Invalid JSON response: ${responseText}`)
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to set up database")
+        throw new Error(result.error || "Failed to set up database")
       }
 
       toast({
         title: "Success",
-        description: data.message,
+        description: result.message || "Database set up successfully",
       })
     } catch (error: any) {
-      console.error("Setup error:", error)
+      console.error("Error setting up database:", error)
+      setDebugInfo((prev) => `${prev}\n\nError: ${error.message}`)
       toast({
         title: "Error",
-        description: error.message || "An unexpected error occurred",
+        description: error.message || "Failed to set up database",
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <Card className="max-w-md mx-auto">
+    <div className="container py-10">
+      <Card>
         <CardHeader>
           <CardTitle>Database Setup</CardTitle>
-          <CardDescription>
-            Set up the required database tables and functions for the messaging and notification system.
-          </CardDescription>
+          <CardDescription>Set up tables and security policies for messaging and notifications</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="admin-secret" className="block text-sm font-medium mb-1">
-                Admin Secret
-              </label>
-              <Input
-                id="admin-secret"
-                type="password"
-                value={adminSecret}
-                onChange={(e) => setAdminSecret(e.target.value)}
-                placeholder="Enter admin secret"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                This should match the ADMIN_SECRET environment variable.
-              </p>
+          <p className="text-sm text-muted-foreground mb-4">
+            This will create the necessary tables and set up Row Level Security policies to protect your data.
+          </p>
+
+          {debugInfo && (
+            <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-md overflow-auto max-h-60">
+              <pre className="text-xs whitespace-pre-wrap">{debugInfo}</pre>
             </div>
-            <Button onClick={handleSetup} disabled={isLoading} className="w-full">
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Setting Up...
-                </>
-              ) : (
-                "Set Up Database"
-              )}
-            </Button>
-          </div>
+          )}
         </CardContent>
+        <CardFooter className="flex flex-col items-start gap-4">
+          <Button onClick={setupDatabase} disabled={loading}>
+            {loading ? "Setting up..." : "Set Up Database"}
+          </Button>
+
+          <div className="text-sm text-muted-foreground">
+            <p>Current session: {session ? "Authenticated" : "Not authenticated"}</p>
+            <p>User role: {session?.user?.user_metadata?.role || "N/A"}</p>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   )

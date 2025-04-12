@@ -1,7 +1,7 @@
-import { SignupForm } from "@/components/auth/signup-form"
+import SignupForm from "@/components/auth/signup-form"
 
 export const metadata = {
-  title: "Sign Up - MAFL Logistics",
+  title: "Sign Up | MAFL Logistics",
   description: "Create a new MAFL Logistics account",
 }
 

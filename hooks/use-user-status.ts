@@ -1,75 +1,96 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAuth } from "./use-auth"
 import { getSupabaseClient } from "@/lib/supabase-client"
+import { useAuth } from "@/hooks/use-auth"
 
-type UserStatus = "online" | "away" | "offline"
+type UserStatus = {
+  status: "online" | "away" | "offline"
+  lastSeen: string | null
+}
 
 export function useUserStatus() {
-  const [userStatuses, setUserStatuses] = useState<Record<string, { status: UserStatus; lastActive: string }>>({})
   const { user } = useAuth()
+  const [userStatuses, setUserStatuses] = useState<Record<string, UserStatus>>({})
   const supabase = getSupabaseClient()
 
-  // Update own status and subscribe to status changes
+  // Update current user's status
   useEffect(() => {
     if (!user) return
 
-    // Set initial status to online
-    const updateStatus = async (status: UserStatus) => {
-      await supabase.from("user_status").upsert({ user_id: user.id, status }, { onConflict: "user_id" })
-    }
+    // Function to update user's status
+    const updateStatus = async (status: "online" | "away" | "offline") => {
+      try {
+        const { error } = await supabase.from("user_statuses").upsert(
+          {
+            user_id: user.id,
+            status,
+            last_seen: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        )
 
-    // Handle page visibility change
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        updateStatus("online")
-      } else {
-        updateStatus("away")
+        if (error) throw error
+      } catch (error) {
+        console.error("Error updating user status:", error)
       }
     }
 
-    // Set initial status
+    // Set user as online when component mounts
     updateStatus("online")
 
-    // Subscribe to status changes
-    const statusSubscription = supabase
-      .channel("user_status_changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_status" }, (payload) => {
-        const { user_id, status, last_active } = payload.new
-        setUserStatuses((prev) => ({
-          ...prev,
-          [user_id]: {
-            status: status as UserStatus,
-            lastActive: last_active,
-          },
-        }))
-      })
-      .subscribe()
+    // Set up event listeners for user activity/inactivity
+    let activityTimeout: NodeJS.Timeout
 
-    // Set up page visibility listener
-    document.addEventListener("visibilitychange", handleVisibilityChange)
+    const resetActivityTimer = () => {
+      clearTimeout(activityTimeout)
 
-    // Set up beforeunload to mark user as offline when leaving
-    window.addEventListener("beforeunload", () => {
-      updateStatus("offline")
+      // If user was away, set back to online
+      if (userStatuses[user.id]?.status === "away") {
+        updateStatus("online")
+      }
+
+      // Set timeout to mark user as away after 5 minutes of inactivity
+      activityTimeout = setTimeout(
+        () => {
+          updateStatus("away")
+        },
+        5 * 60 * 1000,
+      ) // 5 minutes
+    }
+
+    // Listen for user activity
+    const activityEvents = ["mousedown", "keydown", "touchstart", "scroll"]
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetActivityTimer)
     })
 
-    // Clean up
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    // Set up beforeunload event to mark user as offline when leaving
+    const handleBeforeUnload = () => {
       updateStatus("offline")
-      statusSubscription.unsubscribe()
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
+    // Start the initial activity timer
+    resetActivityTimer()
+
+    // Cleanup function
+    return () => {
+      clearTimeout(activityTimeout)
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetActivityTimer)
+      })
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      updateStatus("offline")
     }
   }, [user, supabase])
 
-  // Get status for a specific user
-  const getUserStatus = (userId: string) => {
-    return userStatuses[userId] || { status: "offline", lastActive: "" }
+  // Function to get a specific user's status
+  const getUserStatus = (userId: string): UserStatus => {
+    return userStatuses[userId] || { status: "offline", lastSeen: null }
   }
 
   return {
-    userStatuses,
     getUserStatus,
   }
 }

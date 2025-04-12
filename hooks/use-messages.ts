@@ -1,136 +1,58 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAuth } from "./use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { getSupabaseClient } from "@/lib/supabase-client"
 
-export type Message = {
+type Conversation = {
+  userId: string
+  userName: string
+  userAvatar?: string
+  userRole?: string
+  lastMessage?: string
+  lastMessageTime?: string
+  unreadCount: number
+}
+
+type Message = {
   id: string
   senderId: string
   receiverId: string
   content: string
   isRead: boolean
   createdAt: string
-  senderDetails?: {
-    name: string
-    avatarUrl?: string
-    role?: string
-  }
-}
-
-export type Conversation = {
-  userId: string
-  userName: string
-  userRole?: string
-  userAvatar?: string
-  lastMessage?: string
-  lastMessageTime?: string
-  unreadCount: number
 }
 
 export function useMessages() {
+  const { user } = useAuth()
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [currentConversation, setCurrentConversation] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
+  const [currentConversation, setCurrentConversation] = useState<string | null>(null)
   const [unreadTotal, setUnreadTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const { user } = useAuth()
   const supabase = getSupabaseClient()
 
-  // Fetch conversations and subscribe to new messages
+  // Fetch conversations when user changes
   useEffect(() => {
     if (!user) {
       setConversations([])
-      setMessages([])
       setUnreadTotal(0)
       setLoading(false)
       return
     }
 
-    setLoading(true)
-
-    // Fetch conversations
     const fetchConversations = async () => {
       try {
-        // Get all messages to/from the current user
-        const { data: messagesData, error: messagesError } = await supabase
-          .from("user_messages")
-          .select(`
-            id,
-            sender_id,
-            receiver_id,
-            content,
-            is_read,
-            created_at
-          `)
-          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-          .order("created_at", { ascending: false })
+        setLoading(true)
+        const response = await fetch("/api/messages/conversations")
 
-        if (messagesError) throw messagesError
-
-        // Group messages by conversation
-        const conversationMap: Record<
-          string,
-          {
-            userId: string
-            lastMessage: string
-            lastMessageTime: string
-            unreadCount: number
-          }
-        > = {}
-
-        messagesData.forEach((message) => {
-          const otherUserId = message.sender_id === user.id ? message.receiver_id : message.sender_id
-
-          if (!conversationMap[otherUserId]) {
-            conversationMap[otherUserId] = {
-              userId: otherUserId,
-              lastMessage: message.content,
-              lastMessageTime: message.created_at,
-              unreadCount: message.receiver_id === user.id && !message.is_read ? 1 : 0,
-            }
-          } else if (message.receiver_id === user.id && !message.is_read) {
-            conversationMap[otherUserId].unreadCount++
-          }
-        })
-
-        // Get user details for each conversation
-        const userIds = Object.keys(conversationMap)
-        if (userIds.length > 0) {
-          const { data: usersData, error: usersError } = await supabase
-            .from("profiles")
-            .select("id, name, avatar_url, role")
-            .in("id", userIds)
-
-          if (usersError) throw usersError
-
-          // Map user details to conversations
-          const conversationsList = userIds
-            .map((id) => {
-              const userDetails = usersData.find((u) => u.id === id)
-              return {
-                userId: id,
-                userName: userDetails?.name || "Unknown User",
-                userRole: userDetails?.role,
-                userAvatar: userDetails?.avatar_url,
-                lastMessage: conversationMap[id].lastMessage,
-                lastMessageTime: conversationMap[id].lastMessageTime,
-                unreadCount: conversationMap[id].unreadCount,
-              }
-            })
-            .sort((a, b) => {
-              return new Date(b.lastMessageTime || "").getTime() - new Date(a.lastMessageTime || "").getTime()
-            })
-
-          setConversations(conversationsList)
-
-          // Calculate total unread messages
-          const total = conversationsList.reduce((sum, conv) => sum + conv.unreadCount, 0)
-          setUnreadTotal(total)
-        } else {
-          setConversations([])
-          setUnreadTotal(0)
+        if (!response.ok) {
+          throw new Error("Failed to fetch conversations")
         }
+
+        const data = await response.json()
+        setConversations(data.conversations || [])
+        setUnreadTotal(data.unreadTotal || 0)
       } catch (error) {
         console.error("Error fetching conversations:", error)
       } finally {
@@ -140,68 +62,30 @@ export function useMessages() {
 
     fetchConversations()
 
-    // Subscribe to new messages
-    const messagesSubscription = supabase
-      .channel("user_messages")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "user_messages" }, (payload) => {
-        const newMessage = payload.new
-
-        // Only process if user is sender or receiver
-        if (newMessage.sender_id === user.id || newMessage.receiver_id === user.id) {
-          // If this is from the current conversation, add to messages
-          if (
-            currentConversation &&
-            (newMessage.sender_id === currentConversation || newMessage.receiver_id === currentConversation)
-          ) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: newMessage.id,
-                senderId: newMessage.sender_id,
-                receiverId: newMessage.receiver_id,
-                content: newMessage.content,
-                isRead: newMessage.is_read,
-                createdAt: newMessage.created_at,
-              },
-            ])
-          }
-
-          // Update conversations
+    // Set up realtime subscription for new messages
+    const subscription = supabase
+      .channel("messages-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_messages",
+          filter: `receiver_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          // Fetch updated conversations to get the latest state
           fetchConversations()
-        }
-      })
-      .subscribe()
-
-    // Subscribe to message updates (mark as read)
-    const messageUpdateSubscription = supabase
-      .channel("message_updates")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "user_messages" }, (payload) => {
-        // Update message read status if in current messages
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === payload.new.id
-              ? {
-                  ...message,
-                  isRead: payload.new.is_read,
-                }
-              : message,
-          ),
-        )
-
-        // Update conversations if needed
-        if (payload.old.is_read === false && payload.new.is_read === true) {
-          fetchConversations()
-        }
-      })
+        },
+      )
       .subscribe()
 
     return () => {
-      messagesSubscription.unsubscribe()
-      messageUpdateSubscription.unsubscribe()
+      supabase.removeChannel(subscription)
     }
-  }, [user, supabase, currentConversation])
+  }, [user, supabase])
 
-  // Fetch messages for a conversation
+  // Fetch messages for current conversation
   useEffect(() => {
     if (!user || !currentConversation) {
       setMessages([])
@@ -210,63 +94,75 @@ export function useMessages() {
 
     const fetchMessages = async () => {
       try {
-        const { data, error } = await supabase
-          .from("user_messages")
-          .select(`
-            id,
-            sender_id,
-            receiver_id,
-            content,
-            is_read,
-            created_at
-          `)
-          .or(
-            `and(sender_id.eq.${user.id},receiver_id.eq.${currentConversation}),and(sender_id.eq.${currentConversation},receiver_id.eq.${user.id})`,
-          )
-          .order("created_at", { ascending: true })
+        const response = await fetch(`/api/messages/conversation/${currentConversation}`)
 
-        if (error) throw error
-
-        const formattedMessages = data.map((msg) => ({
-          id: msg.id,
-          senderId: msg.sender_id,
-          receiverId: msg.receiver_id,
-          content: msg.content,
-          isRead: msg.is_read,
-          createdAt: msg.created_at,
-        }))
-
-        setMessages(formattedMessages)
-
-        // Mark unread messages as read
-        const unreadIds = data.filter((msg) => msg.receiver_id === user.id && !msg.is_read).map((msg) => msg.id)
-
-        if (unreadIds.length > 0) {
-          await supabase.from("user_messages").update({ is_read: true }).in("id", unreadIds)
+        if (!response.ok) {
+          throw new Error("Failed to fetch messages")
         }
+
+        const data = await response.json()
+        setMessages(data.messages || [])
       } catch (error) {
         console.error("Error fetching messages:", error)
       }
     }
 
     fetchMessages()
-  }, [user, supabase, currentConversation])
+
+    // Set up realtime subscription for new messages in this conversation
+    const subscription = supabase
+      .channel(`conversation-${currentConversation}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_messages",
+          filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${currentConversation}),and(sender_id=eq.${currentConversation},receiver_id=eq.${user.id}))`,
+        },
+        async (payload) => {
+          // Add the new message to the list
+          const newMessage = {
+            id: payload.new.id,
+            senderId: payload.new.sender_id,
+            receiverId: payload.new.receiver_id,
+            content: payload.new.content,
+            isRead: payload.new.is_read,
+            createdAt: payload.new.created_at,
+          }
+
+          setMessages((prev) => [...prev, newMessage])
+
+          // If the message is to the current user and unread, mark it as read
+          if (payload.new.receiver_id === user.id && !payload.new.is_read) {
+            await markConversationAsRead(currentConversation)
+          }
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(subscription)
+    }
+  }, [user, currentConversation, supabase])
 
   // Send a message
   const sendMessage = async (receiverId: string, content: string) => {
     if (!user) return false
 
     try {
-      const { data, error } = await supabase
-        .from("user_messages")
-        .insert({
-          sender_id: user.id,
-          receiver_id: receiverId,
-          content,
-        })
-        .select()
+      const response = await fetch("/api/messages/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ receiverId, content }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to send message")
+      }
+
       return true
     } catch (error) {
       console.error("Error sending message:", error)
@@ -274,19 +170,38 @@ export function useMessages() {
     }
   }
 
-  // Mark all messages in a conversation as read
-  const markConversationAsRead = async (otherUserId: string) => {
+  // Mark conversation as read
+  const markConversationAsRead = async (userId: string) => {
     if (!user) return false
 
     try {
-      const { error } = await supabase
-        .from("user_messages")
-        .update({ is_read: true })
-        .eq("sender_id", otherUserId)
-        .eq("receiver_id", user.id)
-        .eq("is_read", false)
+      const response = await fetch(`/api/messages/mark-read/${userId}`, {
+        method: "POST",
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to mark conversation as read")
+      }
+
+      // Update local state
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.userId === userId
+            ? {
+                ...conv,
+                unreadCount: 0,
+              }
+            : conv,
+        ),
+      )
+
+      // Recalculate total unread
+      setConversations((current) => {
+        const newUnreadTotal = current.reduce((sum, conv) => sum + conv.unreadCount, 0)
+        setUnreadTotal(newUnreadTotal)
+        return current
+      })
+
       return true
     } catch (error) {
       console.error("Error marking conversation as read:", error)
@@ -298,10 +213,10 @@ export function useMessages() {
     conversations,
     messages,
     unreadTotal,
-    loading,
     currentConversation,
     setCurrentConversation,
     sendMessage,
     markConversationAsRead,
+    loading,
   }
 }

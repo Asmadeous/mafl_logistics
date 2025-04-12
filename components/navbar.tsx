@@ -2,276 +2,217 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, User, LogOut, Settings, ChevronDown } from "lucide-react"
-import { ThemeToggle } from "./theme-toggle"
-import { useTheme } from "next-themes"
-import { motion } from "framer-motion"
-import { useScrollPosition } from "@/hooks/use-scroll-position"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { useAuth } from "@/hooks/use-auth"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-// Modify imports to include our new components
-import { NotificationDropdown } from "./notifications/notification-dropdown"
-import { MessageDropdown } from "./messaging/message-dropdown"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Menu, X, User, LogOut, Settings, MessageSquare, Bell } from "lucide-react"
+import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
+import { MessageDropdown } from "@/components/messaging/message-dropdown"
 
 export default function Navbar() {
-  const { scrollPosition, isScrolled } = useScrollPosition()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, isAdmin, logout } = useAuth()
   const pathname = usePathname()
-  const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const isMobile = useMediaQuery("(max-width: 768px)")
-  const isHomePage = pathname === "/"
-  const { user, isAdmin, signOut, loading } = useAuth()
+  const router = useRouter()
+  const [isOnline, setIsOnline] = useState(true)
 
-  // Ensure component is mounted to avoid hydration mismatch
+  // Check online status
   useEffect(() => {
-    setMounted(true)
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
   }, [])
 
-  const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Services", href: "/services" },
-    { name: "About", href: "/about" },
-    { name: "Blog", href: "/blog" },
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
+  }
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/services", label: "Services" },
+    { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
   ]
 
-  const isDark = resolvedTheme === "dark"
+  const isActive = (path: string) => {
+    return pathname === path
+  }
 
-  // Determine navbar background based on page and scroll position
-  const navbarBg = isHomePage
-    ? "bg-black/30 backdrop-blur-sm" // Always transparent on home page
-    : isScrolled
-      ? isDark
-        ? "bg-mafl-dark/90 backdrop-blur-md shadow-sm"
-        : "bg-white/90 backdrop-blur-md shadow-sm"
-      : "bg-black/30 backdrop-blur-sm" // Translucent on other pages when not scrolled
-
-  // Text color should be white when transparent (over video)
-  const textColor = !mounted
-    ? "text-white"
-    : isHomePage || (!isScrolled && !isHomePage)
-      ? "text-white"
-      : isDark
-        ? "text-white"
-        : "text-mafl-dark"
+  const handleAuthClick = () => {
+    router.push("/auth")
+  }
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navbarBg}`}>
-      <div className="container mx-auto px-4">
-        <div className="flex h-20 items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center"
-          >
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-mafl-orange">MAFL</span>
-              <span className={`text-xl font-semibold ${textColor}`}>Logistics</span>
-            </Link>
-          </motion.div>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-6 md:gap-10">
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block">MAFL Logistics</span>
+          </Link>
 
-          {/* Desktop Navigation */}
-          <motion.nav
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="hidden md:flex items-center space-x-8"
-          >
-            {navItems.map((item, index) => (
-              <motion.div
-                key={item.name}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 * (index + 1) }}
+          <nav className="hidden md:flex gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive(link.href) ? "text-foreground" : "text-muted-foreground"
+                }`}
               >
-                <Link
-                  href={item.href}
-                  className={`text-sm font-medium uppercase tracking-wider transition-colors hover:text-mafl-orange ${
-                    pathname === item.href ? "text-mafl-orange font-semibold" : textColor
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              </motion.div>
+                {link.label}
+              </Link>
             ))}
+          </nav>
+        </div>
 
-            {/* Authentication and Notification Icons */}
-            {!loading && (
-              <>
-                {user ? (
-                  <div className="flex items-center space-x-4">
-                    {/* Notifications */}
-                    <NotificationDropdown iconClassName={textColor} />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
 
-                    {/* Messages */}
-                    <MessageDropdown iconClassName={textColor} />
+          {user ? (
+            <>
+              <div className="hidden md:flex items-center gap-2">
+                <NotificationDropdown />
+                <MessageDropdown />
+              </div>
 
-                    {/* User Menu */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className={`flex items-center ${textColor}`}>
-                          <User className="h-4 w-4 mr-2" />
-                          <span className="mr-1">{user.user_metadata?.name || "Account"}</span>
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {isAdmin && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin" className="cursor-pointer">
-                              Admin Dashboard
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="cursor-pointer">
-                            Dashboard
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/dashboard/profile" className="cursor-pointer">
-                            Profile
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/dashboard/settings" className="cursor-pointer">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Settings
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
-                          <LogOut className="h-4 w-4 mr-2" />
-                          Sign out
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <Link href="/auth/login">
-                      <Button variant="ghost" className={textColor}>
-                        Sign In
-                      </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <div className="relative">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.name || user.email} />
+                        <AvatarFallback>
+                          {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span
+                        className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${
+                          isOnline ? "bg-green-500" : "bg-gray-400"
+                        }`}
+                      />
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name || "User"}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      <div className="flex items-center mt-1">
+                        <span className={`h-2 w-2 rounded-full mr-1 ${isOnline ? "bg-green-500" : "bg-gray-400"}`} />
+                        <span className="text-xs text-muted-foreground">{isOnline ? "Online" : "Offline"}</span>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href={isAdmin ? "/admin" : "/dashboard"} className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
                     </Link>
-                    <Link href="/auth/signup">
-                      <Button
-                        variant="outline"
-                        className="border-mafl-orange text-mafl-orange hover:bg-mafl-orange hover:text-white"
-                      >
-                        Sign Up
-                      </Button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/messages" className="flex items-center">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Messages</span>
                     </Link>
-                  </div>
-                )}
-              </>
-            )}
-
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
-            >
-              <ThemeToggle />
-            </motion.div>
-          </motion.nav>
-
-          {/* Mobile Navigation */}
-          <div className="flex items-center md:hidden space-x-4">
-            {!loading && user && (
-              <>
-                <NotificationDropdown triggerClassName="relative" iconClassName={`h-5 w-5 ${textColor}`} />
-                <MessageDropdown triggerClassName="relative" iconClassName={`h-5 w-5 ${textColor}`} />
-              </>
-            )}
-            <ThemeToggle />
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className={textColor}>
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <div className="flex flex-col space-y-4 mt-8">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`text-lg font-medium transition-colors hover:text-primary ${
-                        pathname === item.href ? "text-primary font-semibold" : "text-muted-foreground"
-                      }`}
-                    >
-                      {item.name}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/notifications" className="flex items-center">
+                      <Bell className="mr-2 h-4 w-4" />
+                      <span>Notifications</span>
                     </Link>
-                  ))}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Button onClick={handleAuthClick}>Sign In</Button>
+          )}
 
-                  {!loading && (
-                    <>
-                      {user ? (
-                        <>
-                          <div className="pt-4 border-t">
-                            <p className="text-sm font-medium mb-2">Account</p>
-                            {isAdmin && (
-                              <Link href="/admin" className="block py-2 text-muted-foreground hover:text-primary">
-                                Admin Dashboard
-                              </Link>
-                            )}
-                            <Link href="/dashboard" className="block py-2 text-muted-foreground hover:text-primary">
-                              Dashboard
-                            </Link>
-                            <Link
-                              href="/dashboard/profile"
-                              className="block py-2 text-muted-foreground hover:text-primary"
-                            >
-                              Profile
-                            </Link>
-                            <Link
-                              href="/dashboard/settings"
-                              className="block py-2 text-muted-foreground hover:text-primary"
-                            >
-                              Settings
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-start pl-0 mt-2 text-red-500 hover:text-red-600 hover:bg-transparent"
-                              onClick={() => signOut()}
-                            >
-                              <LogOut className="h-4 w-4 mr-2" />
-                              Sign out
-                            </Button>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col space-y-2 pt-4 border-t">
-                          <Link href="/auth/login">
-                            <Button variant="outline" className="w-full justify-start">
-                              Sign In
-                            </Button>
-                          </Link>
-                          <Link href="/auth/signup">
-                            <Button className="w-full justify-start">Sign Up</Button>
-                          </Link>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          <Button variant="ghost" className="md:hidden" size="icon" onClick={toggleMenu}>
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden">
+          <div className="container py-4 space-y-4">
+            <nav className="flex flex-col space-y-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    isActive(link.href) ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {user && (
+                <>
+                  <Link
+                    href="/messages"
+                    className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Messages
+                  </Link>
+                  <Link
+                    href="/notifications"
+                    className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Bell className="h-4 w-4 mr-2" />
+                    Notifications
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Profile Settings
+                  </Link>
+                </>
+              )}
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

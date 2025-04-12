@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -7,64 +8,58 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { CalendarIcon, Clock, Share2, User } from "lucide-react"
 import { format } from "date-fns"
-import { getSupabaseClient } from "@/lib/supabase-client"
+import { api } from "@/lib/api"
+
+// Loading component for Suspense
+function BlogPostSkeleton() {
+  return (
+    <div className="pt-24 pb-16 animate-pulse">
+      <section className="py-12 bg-gradient-to-b from-white to-gray-50 dark:from-mafl-dark/80 dark:to-mafl-dark/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-10 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="flex flex-wrap gap-4 mb-6">
+              <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div className="h-[300px] md:h-[500px] w-full bg-gray-200 dark:bg-gray-700"></div>
+    </div>
+  )
+}
 
 async function getBlogPost(slug: string) {
-  const supabase = getSupabaseClient()
-  const { data: post, error } = await supabase
-    .from("blog_posts")
-    .select(`
-      *,
-      blog_categories(name, slug),
-      blog_posts_tags(
-        tag_id,
-        blog_tags(name, slug)
-      )
-    `)
-    .eq("slug", slug)
-    .eq("status", "published")
-    .single()
-
-  if (error) {
+  try {
+    return await api.blog.getPost(slug)
+  } catch (error) {
     console.error("Error fetching blog post:", error)
     return null
   }
-
-  // Increment view count
-  await supabase.rpc("increment_blog_view_count", { post_slug: slug })
-
-  return post
 }
 
 async function getRelatedPosts(categoryId: string, currentPostId: string) {
-  const supabase = getSupabaseClient()
-  const { data: posts, error } = await supabase
-    .from("blog_posts")
-    .select(`
-      id,
-      title,
-      slug,
-      excerpt,
-      featured_image,
-      published_at,
-      author_name
-    `)
-    .eq("status", "published")
-    .eq("category_id", categoryId)
-    .neq("id", currentPostId)
-    .order("published_at", { ascending: false })
-    .limit(3)
-
-  if (error) {
+  try {
+    return await api.blog.getRelatedPosts(categoryId, currentPostId)
+  } catch (error) {
     console.error("Error fetching related posts:", error)
     return []
   }
-
-  return posts
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = await getBlogPost(params.slug)
+export default function BlogPostPage({ params }: { params: { slug: string } }) {
+  return (
+    <Suspense fallback={<BlogPostSkeleton />}>
+      <BlogPostContent slug={params.slug} />
+    </Suspense>
+  )
+}
+
+async function BlogPostContent({ slug }: { slug: string }) {
+  const post = await getBlogPost(slug)
 
   if (!post) {
     notFound()
@@ -124,9 +119,9 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                 <Clock className="h-4 w-4 mr-1" />
                 <span>{readingTime} min read</span>
               </div>
-              <Link href={`/blog/category/${post.blog_categories.slug}`}>
+              <Link href={`/blog/category/${post.category.slug}`}>
                 <Badge variant="outline" className="bg-muted/50">
-                  {post.blog_categories.name}
+                  {post.category.name}
                 </Badge>
               </Link>
             </div>
@@ -158,10 +153,10 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               <div className="mt-8 pt-6 border-t">
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-sm font-medium">Tags:</span>
-                  {post.blog_posts_tags.map((tag: any) => (
-                    <Link key={tag.tag_id} href={`/blog/tag/${tag.blog_tags.slug}`}>
+                  {post.tags.map((tag: any) => (
+                    <Link key={tag.id} href={`/blog/tag/${tag.slug}`}>
                       <Badge variant="outline" className="bg-muted/50">
-                        {tag.blog_tags.name}
+                        {tag.name}
                       </Badge>
                     </Link>
                   ))}
@@ -295,7 +290,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                 <div>
                   <h3 className="text-xl font-bold mb-4">Related Articles</h3>
                   <div className="space-y-4">
-                    {relatedPosts.map((relatedPost) => (
+                    {relatedPosts.map((relatedPost: any) => (
                       <Card key={relatedPost.id} className="overflow-hidden">
                         <div className="relative h-40 w-full">
                           <Image
@@ -339,9 +334,17 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             <p className="text-muted-foreground mb-6">
               Stay updated with our latest articles, industry insights, and company news.
             </p>
-            <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            <form
+              className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+              action={async (formData) => {
+                "use server"
+                const email = formData.get("email") as string
+                await api.newsletter.subscribe(email)
+              }}
+            >
               <input
                 type="email"
+                name="email"
                 placeholder="Your email address"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 required

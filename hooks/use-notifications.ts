@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAuth } from "./use-auth"
-import { toast } from "./use-toast"
+import { useAuth } from "@/hooks/use-auth"
 import { getSupabaseClient } from "@/lib/supabase-client"
 
 export type Notification = {
@@ -10,19 +9,18 @@ export type Notification = {
   title: string
   message: string
   type: "info" | "success" | "warning" | "error"
-  link?: string
+  link?: string | null
   isRead: boolean
   createdAt: string
 }
 
 export function useNotifications() {
+  const { user } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const { user } = useAuth()
   const supabase = getSupabaseClient()
 
-  // Fetch notifications and subscribe to new ones
   useEffect(() => {
     if (!user) {
       setNotifications([])
@@ -31,16 +29,15 @@ export function useNotifications() {
       return
     }
 
-    setLoading(true)
-
-    // Fetch initial notifications
     const fetchNotifications = async () => {
       try {
+        setLoading(true)
         const { data, error } = await supabase
           .from("user_notifications")
           .select("*")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
+          .limit(20)
 
         if (error) throw error
 
@@ -48,7 +45,7 @@ export function useNotifications() {
           id: notification.id,
           title: notification.title,
           message: notification.message,
-          type: notification.type as "info" | "success" | "warning" | "error",
+          type: notification.type || "info",
           link: notification.link,
           isRead: notification.is_read,
           createdAt: notification.created_at,
@@ -65,89 +62,99 @@ export function useNotifications() {
 
     fetchNotifications()
 
-    // Subscribe to new notifications
-    const notificationSubscription = supabase
-      .channel("user_notifications_changes")
+    // Set up realtime subscription
+    const subscription = supabase
+      .channel("notifications-changes")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
         (payload) => {
           const newNotification = {
             id: payload.new.id,
             title: payload.new.title,
             message: payload.new.message,
-            type: payload.new.type as "info" | "success" | "warning" | "error",
+            type: payload.new.type || "info",
             link: payload.new.link,
             isRead: payload.new.is_read,
             createdAt: payload.new.created_at,
           }
-
           setNotifications((prev) => [newNotification, ...prev])
-          setUnreadCount((prev) => prev + 1)
-
-          // Show toast for new notification
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-            variant: newNotification.type === "error" ? "destructive" : "default",
-          })
+          if (!newNotification.isRead) {
+            setUnreadCount((prev) => prev + 1)
+          }
         },
       )
-      .subscribe()
-
-    // Subscribe to notification updates (mark as read)
-    const notificationUpdateSubscription = supabase
-      .channel("user_notifications_updates")
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` },
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "user_notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
         (payload) => {
           setNotifications((prev) =>
             prev.map((notification) =>
               notification.id === payload.new.id
                 ? {
                     ...notification,
+                    title: payload.new.title,
+                    message: payload.new.message,
+                    type: payload.new.type || "info",
+                    link: payload.new.link,
                     isRead: payload.new.is_read,
                   }
                 : notification,
             ),
           )
-
-          // Update unread count
-          setUnreadCount((prev) => {
-            if (payload.old.is_read === false && payload.new.is_read === true) {
-              return prev - 1
-            }
-            return prev
+          // Recalculate unread count
+          setNotifications((current) => {
+            setUnreadCount(current.filter((n) => !n.isRead).length)
+            return current
           })
         },
       )
       .subscribe()
 
     return () => {
-      notificationSubscription.unsubscribe()
-      notificationUpdateSubscription.unsubscribe()
+      supabase.removeChannel(subscription)
     }
   }, [user, supabase])
 
-  // Mark a notification as read
   const markAsRead = async (notificationId: string) => {
     if (!user) return false
 
     try {
-      const { data, error } = await supabase.rpc("mark_notification_read", { notification_id: notificationId })
+      const { error } = await supabase.from("user_notifications").update({ is_read: true }).eq("id", notificationId)
 
       if (error) throw error
-      return data
+
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === notificationId
+            ? {
+                ...notification,
+                isRead: true,
+              }
+            : notification,
+        ),
+      )
+      setUnreadCount((prev) => Math.max(0, prev - 1))
+
+      return true
     } catch (error) {
       console.error("Error marking notification as read:", error)
       return false
     }
   }
 
-  // Mark all notifications as read
   const markAllAsRead = async () => {
-    if (!user) return false
+    if (!user || unreadCount === 0) return false
 
     try {
       const { error } = await supabase
@@ -158,8 +165,12 @@ export function useNotifications() {
 
       if (error) throw error
 
-      // Update local state
-      setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })))
+      setNotifications((prev) =>
+        prev.map((notification) => ({
+          ...notification,
+          isRead: true,
+        })),
+      )
       setUnreadCount(0)
 
       return true
