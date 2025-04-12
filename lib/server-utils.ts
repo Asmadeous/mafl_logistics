@@ -1,5 +1,7 @@
-// Simplified server utils without Supabase dependencies
+// Mock server-side session and admin client for now
+// This removes the dependency on @supabase/auth-helpers-nextjs
 
+// Get server-side session
 export async function getServerSession() {
   // Return a mock session
   return {
@@ -9,19 +11,35 @@ export async function getServerSession() {
   }
 }
 
+// Get server-side admin client
 export function getServerAdminClient() {
-  // Return a mock admin client
+  // Return a mock admin client with minimal functionality
   return {
-    // Add minimal functionality needed for photo handling
-    storage: {
-      from: (bucket: string) => ({
-        upload: async (path: string, file: any) => {
-          console.log(`Mock server upload to ${bucket}/${path}`)
-          return { data: { path }, error: null }
-        },
-        getPublicUrl: (path: string) => ({
-          data: { publicUrl: `/placeholder.svg?height=200&width=200` },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          or: () => ({
+            order: () => ({
+              limit: () => Promise.resolve({ data: [], error: null }),
+            }),
+          }),
         }),
+        in: () => Promise.resolve({ data: [], error: null }),
+        single: () => Promise.resolve({ data: null, error: null }),
+        delete: () => ({
+          eq: () => Promise.resolve({ error: null }),
+        }),
+        update: () => ({
+          eq: () => Promise.resolve({ error: null }),
+          in: () => Promise.resolve({ error: null }),
+        }),
+        insert: () => Promise.resolve({ error: null }),
+      }),
+    }),
+    storage: {
+      from: () => ({
+        upload: () => Promise.resolve({ data: { path: "mock-path" }, error: null }),
+        getPublicUrl: () => ({ data: { publicUrl: "/placeholder.svg" } }),
       }),
     },
   }

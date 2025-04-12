@@ -336,10 +336,16 @@ async function BlogPostContent({ slug }: { slug: string }) {
             </p>
             <form
               className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
-              action={async (formData) => {
-                "use server"
+              onSubmit={async (e) => {
+                e.preventDefault()
+                const formData = new FormData(e.currentTarget)
                 const email = formData.get("email") as string
-                await api.newsletter.subscribe(email)
+                try {
+                  await api.newsletter.subscribe(email)
+                  // Show success message
+                } catch (error) {
+                  // Handle error
+                }
               }}
             >
               <input

@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { api } from "@/lib/api"
 
 export function NewsletterSignup({
   className,
@@ -86,11 +87,37 @@ export function NewsletterSignup({
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault()
+                setIsSubmitting(true)
+                const formData = new FormData(e.currentTarget)
+                const email = formData.get("email") as string
+                try {
+                  await api.newsletter.subscribe(email)
+                  setIsSuccess(true)
+                  toast({
+                    title: "Success!",
+                    description: "You have successfully subscribed to the newsletter.",
+                    variant: "success",
+                  })
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to subscribe. Please try again later.",
+                    variant: "destructive",
+                  })
+                } finally {
+                  setIsSubmitting(false)
+                }
+              }}
+            >
               <div>
                 <Input
                   type="email"
                   placeholder="Enter your email address"
+                  name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -125,10 +152,36 @@ export function NewsletterSignup({
           <span>Thanks for subscribing!</span>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex space-x-2">
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            setIsSubmitting(true)
+            const formData = new FormData(e.currentTarget)
+            const email = formData.get("email") as string
+            try {
+              await api.newsletter.subscribe(email)
+              setIsSuccess(true)
+              toast({
+                title: "Success!",
+                description: "You have successfully subscribed to the newsletter.",
+                variant: "success",
+              })
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to subscribe. Please try again later.",
+                variant: "destructive",
+              })
+            } finally {
+              setIsSubmitting(false)
+            }
+          }}
+          className="flex space-x-2"
+        >
           <Input
             type="email"
             placeholder="Your email address"
+            name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
