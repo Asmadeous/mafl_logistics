@@ -296,32 +296,28 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 }
 
 async function BlogPostContent({ slug }: { slug: string }) {
-  const post = await getBlogPost(slug);
-
-  if (!post) {\
-    slug}: slug: string ) {
-  const post = await getBlogPost(slug);
+  const post = await getBlogPost(slug)
 
   if (!post) {
-    notFound();
+    notFound()
   }
 
-  const relatedPosts = await getRelatedPosts(post.category_id, post.id);
+  const relatedPosts = await getRelatedPosts(post.category_id, post.id)
 
   // Format the date
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "MMMM d, yyyy");
-  };
+    return format(new Date(dateString), "MMMM d, yyyy")
+  }
 
   // Calculate reading time (rough estimate)
   const calculateReadingTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    const readingTime = Math.ceil(wordCount / wordsPerMinute);
-    return readingTime;
-  };
+    const wordsPerMinute = 200
+    const wordCount = content.split(/\s+/).length
+    const readingTime = Math.ceil(wordCount / wordsPerMinute)
+    return readingTime
+  }
 
-  const readingTime = calculateReadingTime(post.content);
+  const readingTime = calculateReadingTime(post.content)
 
   return (
     <div className="pt-24 pb-16">
@@ -491,8 +487,8 @@ async function BlogPostContent({ slug }: { slug: string }) {
                     </button>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/blog/${post.slug}`);
-                        alert("Link copied to clipboard!");
+                        navigator.clipboard.writeText(`${window.location.origin}/blog/${post.slug}`)
+                        alert("Link copied to clipboard!")
                       }}
                       className="p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors"
                       aria-label="Copy link"
@@ -578,11 +574,11 @@ async function BlogPostContent({ slug }: { slug: string }) {
             <form
               className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
               onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const email = formData.get("email") as string;
+                e.preventDefault()
+                const formData = new FormData(e.currentTarget)
+                const email = formData.get("email") as string
                 // Handle newsletter subscription
-                alert(`Thank you for subscribing with ${email}!`);
+                alert(`Thank you for subscribing with ${email}!`)
               }}
             >
               <input
@@ -603,5 +599,5 @@ async function BlogPostContent({ slug }: { slug: string }) {
         </div>
       </section>
     </div>
-  );
+  )
 }
