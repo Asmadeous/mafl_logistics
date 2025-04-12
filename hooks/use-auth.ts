@@ -1,8 +1,7 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, createContext, useContext } from "react"
+import * as React from "react"
+import { useState, useEffect, useContext } from "react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
 
@@ -35,24 +34,10 @@ type AuthContextType = {
   googleAuthEmployee: () => void
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  error: null,
-  loginUser: async () => {},
-  loginEmployee: async () => {},
-  registerUser: async () => {},
-  registerEmployee: async () => {},
-  logout: async () => {},
-  requestPasswordReset: async () => {},
-  resetPassword: async () => {},
-  isAdmin: false,
-  googleAuthUser: () => {},
-  googleAuthEmployee: () => {},
-})
+const AuthContext = React.createContext<AuthContextType | undefined>(undefined)
 
 // Provider component
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }): React.ReactElement {
   const [user, setUser] = useState<AuthUser>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -240,30 +225,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = api.auth.googleAuthEmployee
   }
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        loginUser,
-        loginEmployee,
-        registerUser,
-        registerEmployee,
-        logout,
-        requestPasswordReset,
-        resetPassword,
-        isAdmin,
-        googleAuthUser,
-        googleAuthEmployee,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const value = {
+    user,
+    loading,
+    error,
+    loginUser,
+    loginEmployee,
+    registerUser,
+    registerEmployee,
+    logout,
+    requestPasswordReset,
+    resetPassword,
+    isAdmin,
+    googleAuthUser,
+    googleAuthEmployee,
+  }
+
+  return React.createElement(AuthContext.Provider, { value }, children)
 }
 
 // Hook for using auth context
-export function useAuth() {
-  return useContext(AuthContext)
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
 }
