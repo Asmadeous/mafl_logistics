@@ -240,27 +240,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = api.auth.googleAuthEmployee
   }
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        loginUser,
-        loginEmployee,
-        registerUser,
-        registerEmployee,
-        logout,
-        requestPasswordReset,
-        resetPassword,
-        isAdmin,
-        googleAuthUser,
-        googleAuthEmployee,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const contextValue = {
+    user,
+    loading,
+    error,
+    loginUser,
+    loginEmployee,
+    registerUser,
+    registerEmployee,
+    logout,
+    requestPasswordReset,
+    resetPassword,
+    isAdmin,
+    googleAuthUser,
+    googleAuthEmployee,
+  }
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
 
 // Hook for using auth context
