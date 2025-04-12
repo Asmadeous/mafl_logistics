@@ -107,7 +107,6 @@ export function useMessages() {
   const [currentConversation, setCurrentConversation] = useState<string | null>(null)
   const [unreadTotal, setUnreadTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  // const supabase = getSupabaseClient()
 
   // Fetch conversations when user changes
   useEffect(() => {

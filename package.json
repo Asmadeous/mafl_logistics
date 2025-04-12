@@ -68,8 +68,7 @@
     "@tiptap/starter-kit": "latest",
     "@tiptap/extension-link": "latest",
     "@tiptap/extension-image": "latest",
-    "@tiptap/extension-placeholder": "latest",
-    "@supabase/supabase-js": "latest"
+    "@tiptap/extension-placeholder": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

@@ -68,35 +68,36 @@ export default function Home() {
     },
   ]
 
+  // Update the partners array to use the centralized image URLs
   const partners = [
     {
       name: "Softcare Limited",
-      logo: "https://jsxwijazpbcwaystsdgp.supabase.co/storage/v1/object/sign/videos/company-logos/softcare.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ2aWRlb3MvY29tcGFueS1sb2dvcy9zb2Z0Y2FyZS5qcGciLCJpYXQiOjE3NDQyOTQwMzksImV4cCI6MTkwMTk3NDAzOX0._rQKV7ZHSFXBQ1JRxK8LAgbgwbzyjlEXuYJKXCVna58",
+      logo: urls.images.partnerLogos.softcare,
       category: "Bulk Cargo Client",
     },
     {
       name: "Malimount Limited",
-      logo: "https://jsxwijazpbcwaystsdgp.supabase.co/storage/v1/object/sign/videos/company-logos/malimount.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ2aWRlb3MvY29tcGFueS1sb2dvcy9tYWxpbW91bnQuanBnIiwiaWF0IjoxNzQ0MjkzOTk4LCJleHAiOjE5MDE5NzM5OTh9.wwjipc6y0J-G0ljIghKYGL_eBgOEUJFvakyF-YN8kno",
+      logo: urls.images.partnerLogos.malimount,
       category: "Bulk Cargo Client",
     },
     {
       name: "Silvermon Limited",
-      logo: "https://jsxwijazpbcwaystsdgp.supabase.co/storage/v1/object/sign/videos/company-logos/silvermon.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ2aWRlb3MvY29tcGFueS1sb2dvcy9zaWx2ZXJtb24uanBnIiwiaWF0IjoxNzQ0Mjk0MDIyLCJleHAiOjE5MDE5NzQwMjJ9.NlRWemMx42mlBMN7yLsm4LXTr4AWTLoufWjPOAU5Nug",
+      logo: urls.images.partnerLogos.silvermon,
       category: "Bulk Cargo Client",
     },
     {
       name: "Makueni County",
-      logo: "https://jsxwijazpbcwaystsdgp.supabase.co/storage/v1/object/sign/videos/company-logos/makueni-county.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ2aWRlb3MvY29tcGFueS1sb2dvcy9tYWt1ZW5pLWNvdW50eS5qcGciLCJpYXQiOjE3NDQyOTM5ODAsImV4cCI6MTkwMTk3Mzk4MH0.ZNXTWOkbm76MJ6ckT4mo8cyDOwuB_9OgLVu3lNxXHmU",
+      logo: urls.images.partnerLogos.makueniCounty,
       category: "Government",
     },
     {
       name: "Amboseli National Park",
-      logo: "https://jsxwijazpbcwaystsdgp.supabase.co/storage/v1/object/sign/videos/company-logos/amboseli.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ2aWRlb3MvY29tcGFueS1sb2dvcy9hbWJvc2VsaS5qcGciLCJpYXQiOjE3NDQyOTM5MzYsImV4cCI6MTkwMTk3MzkzNn0.ElXtCh3AxadX8Q0VLMf6LmGkYzRy9-zou4eT2iVgfZ4",
+      logo: urls.images.partnerLogos.amboseli,
       category: "Conservation",
     },
     {
       name: "Kenya Ports Authority",
-      logo: "https://jsxwijazpbcwaystsdgp.supabase.co/storage/v1/object/sign/videos/company-logos/KPA.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ2aWRlb3MvY29tcGFueS1sb2dvcy9LUEEuanBnIiwiaWF0IjoxNzQ0MjkzOTYyLCJleHAiOjE5MDE5NzM5NjJ9.ylEgzGcW7-zC0DgC1RNkI_AiQDqmCKywzW19HGnwXc4",
+      logo: urls.images.partnerLogos.kpa,
       category: "Government",
     },
   ]

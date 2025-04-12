@@ -27,6 +27,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import type { JSX } from "react/jsx-runtime"
+import { urls } from "@/utils/urls"
 
 export default function ServicesPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -45,19 +46,19 @@ export default function ServicesPage() {
       title: "Heavy Machinery Transport",
       description: "Specialized transport for construction equipment, industrial machinery, and heavy cargo.",
       icon: <Truck className="h-10 w-10 text-mafl-orange" />,
-      image: "/images/heavy-machinery-transport.jpg",
+      image: urls.images.heavyMachineryTransport,
     },
     {
       title: "Cross-Border Logistics",
       description: "Seamless transport solutions across East Africa with customs clearance assistance.",
       icon: <Globe className="h-10 w-10 text-mafl-orange" />,
-      image: "/images/cross-border-logistics.jpg",
+      image: urls.images.crossBorderLogistics,
     },
     {
       title: "Road Construction Services",
       description: "Complete road construction services, including grading, excavation, surfacing, & maintenance.",
       icon: <Warehouse className="h-10 w-10 text-mafl-orange" />,
-      image: "/images/road-construction.jpg",
+      image: urls.images.roadConstruction,
     },
   ]
 
@@ -74,8 +75,8 @@ export default function ServicesPage() {
         "Qualified operators available",
         "Maintenance and support included",
       ],
-      image: "/images/heavy-machinery-hire.jpg",
-      videoUrl: "/videos/heavy-machinery.mp4",
+      image: urls.images.heavyMachineryHire,
+      videoUrl: urls.videos.heavyMachinery,
     },
     {
       title: "Cold Chain Logistics",
@@ -89,8 +90,8 @@ export default function ServicesPage() {
         "Compliance with international cold chain standards",
         "Specialized handling for sensitive products",
       ],
-      image: "/images/cold-chain-logistics.jpg",
-      videoUrl: "/videos/cold-chain-logistics.mp4",
+      image: urls.images.coldChainLogistics,
+      videoUrl: urls.videos.coldChainLogistics,
     },
     {
       title: "Project Cargo & Oversized Load",
@@ -104,8 +105,8 @@ export default function ServicesPage() {
         "Permits and escort arrangements",
         "Experienced team for complex loading and unloading",
       ],
-      image: "/images/project-cargo.jpg",
-      videoUrl: "/videos/project-cargo.mp4",
+      image: urls.images.projectCargo,
+      videoUrl: urls.videos.projectCargo,
     },
     {
       title: "Hazardous Goods Transportation",
@@ -119,8 +120,8 @@ export default function ServicesPage() {
         "Specialized containment and safety equipment",
         "Emergency response planning and support",
       ],
-      image: "/images/hazardous-goods.jpg",
-      videoUrl: "/videos/hazardous-goods.mp4",
+      image: urls.images.hazardousGoods,
+      videoUrl: urls.videos.hazardousGoods,
     },
     {
       title: "Last-Mile Delivery",
@@ -134,7 +135,7 @@ export default function ServicesPage() {
         "Flexible scheduling options",
         "Specialized handling for fragile or high-value items",
       ],
-      image: "/placeholder.svg?height=300&width=400",
+      image: urls.images.lastMileDelivery,
       videoUrl: null,
     },
     {
@@ -149,7 +150,7 @@ export default function ServicesPage() {
         "Reduced capital expenditure and maintenance costs",
         "Scalable capacity to meet changing business demands",
       ],
-      image: "/placeholder.svg?height=300&width=400",
+      image: urls.images.fleetLeasing,
       videoUrl: null,
     },
   ]

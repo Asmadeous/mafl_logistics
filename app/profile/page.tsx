@@ -74,7 +74,9 @@ export default function ProfilePage() {
     },
   })
 
-  // Handle avatar file selection
+  // Update the avatar handling to work with Rails API
+
+  // Replace the avatar file handling to work with FormData for Rails
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -84,6 +86,8 @@ export default function ProfilePage() {
         setAvatarPreview(e.target?.result as string)
       }
       reader.readAsDataURL(file)
+
+      // The file will be included in the FormData when the form is submitted
     }
   }
 
@@ -153,6 +157,8 @@ export default function ProfilePage() {
       setIsUpdating(false)
     }
   }
+
+  // The form submission already uses FormData which will work with Rails
 
   if (loading) {
     return <div className="container py-10 text-center">Loading...</div>

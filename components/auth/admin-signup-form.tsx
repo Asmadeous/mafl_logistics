@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -22,7 +24,7 @@ const formSchema = z
     email: z.string().email({ message: "Please enter a valid email address" }),
     password: z.string().min(8, { message: "Password must be at least 8 characters" }),
     password_confirmation: z.string(),
-    avatar: z.string().nullable().optional(),
+    avatar: z.any().nullable().optional(),
     full_picture: z.string().nullable().optional(),
     terms: z.boolean().refine((val) => val === true, {
       message: "You must accept the terms and conditions",
@@ -39,6 +41,7 @@ export default function AdminSignupForm() {
   const [error, setError] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [fullPictureFile, setFullPictureFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const router = useRouter()
 
   // Initialize form
@@ -55,6 +58,22 @@ export default function AdminSignupForm() {
     },
   })
 
+  // Replace the avatar file handling to work with FormData for Rails
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Set the file in the form
+      form.setValue("avatar", file)
+
+      // Create a preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setAvatarPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   // Form submission handler
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -65,25 +84,21 @@ export default function AdminSignupForm() {
       const { terms, ...userData } = values
 
       // Create FormData if we have files
-      if (avatarFile || fullPictureFile) {
-        const formData = new FormData()
-        formData.append("employee[name]", userData.name)
-        formData.append("employee[email]", userData.email)
-        formData.append("employee[password]", userData.password)
-        formData.append("employee[password_confirmation]", userData.password_confirmation)
+      const formData = new FormData()
+      formData.append("employee[name]", userData.name)
+      formData.append("employee[email]", userData.email)
+      formData.append("employee[password]", userData.password)
+      formData.append("employee[password_confirmation]", userData.password_confirmation)
 
-        if (avatarFile) {
-          formData.append("employee[avatar]", avatarFile)
-        }
-
-        if (fullPictureFile) {
-          formData.append("employee[full_picture]", fullPictureFile)
-        }
-
-        await registerEmployee(formData, true)
-      } else {
-        await registerEmployee(userData)
+      if (userData.avatar) {
+        formData.append("employee[avatar]", userData.avatar)
       }
+
+      if (fullPictureFile) {
+        formData.append("employee[full_picture]", fullPictureFile)
+      }
+
+      await registerEmployee(formData, true)
 
       // Redirect is handled in the auth hook
     } catch (err: any) {
@@ -116,12 +131,14 @@ export default function AdminSignupForm() {
                   <FormItem>
                     <FormLabel className="text-center block">Profile Avatar</FormLabel>
                     <FormControl>
-                      <FileUpload
-                        value={field.value || undefined}
-                        onChange={field.onChange}
-                        onFileChange={setAvatarFile}
-                        placeholder={form.watch("name")}
-                      />
+                      <input type="file" accept="image/*" onChange={handleAvatarChange} />
+                      {avatarPreview && (
+                        <img
+                          src={avatarPreview || "/placeholder.svg"}
+                          alt="Avatar Preview"
+                          style={{ maxWidth: "100px", marginTop: "10px" }}
+                        />
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>

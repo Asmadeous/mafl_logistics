@@ -20,6 +20,7 @@ import {
   Receipt,
   Loader2,
   Bell,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
@@ -27,6 +28,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
+import { adminRoutes } from "./routes"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -36,11 +38,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user, isAdmin, loading, signOut } = useAuth()
+  const { user, isAdmin, loading, logout } = useAuth()
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push("/admin/login")
+      router.push(adminRoutes.auth.login)
     }
   }, [user, isAdmin, loading, router])
 
@@ -59,64 +61,70 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigation = [
     {
       name: "Dashboard",
-      href: "/admin",
+      href: adminRoutes.dashboard,
       icon: LayoutDashboard,
-      current: pathname === "/admin",
+      current: pathname === adminRoutes.dashboard,
     },
     {
       name: "Orders",
-      href: "/admin/orders",
+      href: adminRoutes.orders.index,
       icon: ShoppingCart,
       current: pathname.startsWith("/admin/orders"),
     },
     {
       name: "Employees",
-      href: "/admin/employees",
+      href: adminRoutes.employees.index,
       icon: UserCircle,
       current: pathname.startsWith("/admin/employees"),
     },
     {
       name: "Customers",
-      href: "/admin/customers",
+      href: adminRoutes.customers.index,
       icon: Building2,
       current: pathname.startsWith("/admin/customers"),
     },
     {
+      name: "Users",
+      href: adminRoutes.users.index,
+      icon: Users,
+      current: pathname.startsWith("/admin/users"),
+    },
+    {
       name: "Blog",
-      href: "/admin/blog",
+      href: adminRoutes.blog.index,
       icon: FileText,
-      current: pathname.startsWith("/admin/blog") || pathname === "/admin/subscribers",
+      current: pathname.startsWith("/admin/blog") || pathname === adminRoutes.subscribers,
       subItems: [
-        { name: "All Posts", href: "/admin/blog" },
-        { name: "Add New", href: "/admin/blog/new" },
-        { name: "Categories", href: "/admin/blog/categories" },
-        { name: "Tags", href: "/admin/blog/tags" },
-        { name: "Subscribers", href: "/admin/subscribers" },
+        { name: "All Posts", href: adminRoutes.blog.index },
+        { name: "Add New", href: adminRoutes.blog.new },
+        { name: "Categories", href: adminRoutes.blog.categories },
+        { name: "Tags", href: adminRoutes.blog.tags },
+        { name: "Subscribers", href: adminRoutes.subscribers },
       ],
     },
     {
       name: "Invoices",
-      href: "/admin/invoices",
+      href: adminRoutes.invoices.index,
       icon: Receipt,
       current: pathname.startsWith("/admin/invoices"),
     },
     {
       name: "Notifications",
-      href: "/admin/notifications",
+      href: adminRoutes.notifications,
       icon: Bell,
-      current: pathname === "/admin/notifications",
+      current: pathname === adminRoutes.notifications,
     },
     {
       name: "Messages",
-      href: "/admin/messages",
+      href: adminRoutes.messages,
       icon: Mail,
-      current: pathname === "/admin/messages",
+      current: pathname === adminRoutes.messages,
     },
     {
       name: "Settings",
-      href: "/admin/settings",
+      href: adminRoutes.settings,
       icon: Settings,
-      current: pathname === "/admin/settings",
+      current: pathname === adminRoutes.settings,
     },
   ]
 
@@ -132,7 +140,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
           <div className="flex items-center justify-between px-4 h-16 border-b">
-            <Link href="/admin" className="flex items-center">
+            <Link href={adminRoutes.dashboard} className="flex items-center">
               <span className="text-xl font-bold text-mafl-orange">MAFL</span>
               <span className="text-lg font-semibold ml-1">Admin</span>
             </Link>
@@ -199,7 +207,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-card border-r">
           <div className="flex items-center h-16 px-4 border-b">
-            <Link href="/admin" className="flex items-center">
+            <Link href={adminRoutes.dashboard} className="flex items-center">
               <span className="text-xl font-bold text-mafl-orange">MAFL</span>
               <span className="text-lg font-semibold ml-1">Admin</span>
             </Link>
@@ -272,7 +280,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       <span>Back to Website</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign Out</span>
                   </DropdownMenuItem>
@@ -288,7 +296,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="sticky top-0 z-10 flex h-16 bg-card border-b lg:hidden">
           <div className="flex-1 flex justify-center px-4">
             <div className="flex items-center">
-              <Link href="/admin" className="flex items-center">
+              <Link href={adminRoutes.dashboard} className="flex items-center">
                 <span className="text-xl font-bold text-mafl-orange">MAFL</span>
                 <span className="text-lg font-semibold ml-1">Admin</span>
               </Link>
@@ -308,7 +316,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <span>Back to Website</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign Out</span>
                 </DropdownMenuItem>

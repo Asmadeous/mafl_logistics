@@ -4,61 +4,83 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { CalendarIcon, Clock, User } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
-import { getSupabaseClient } from "@/lib/supabase-client"
 
-// Initialize Supabase client with client-side credentials
-// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-// const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-// const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Mock blog posts data
+const mockPosts = [
+  {
+    id: "1",
+    title: "The Future of Logistics in East Africa",
+    slug: "future-of-logistics-east-africa",
+    excerpt: "Exploring the emerging trends and technologies shaping the logistics industry across East Africa.",
+    featured_image: "/placeholder.svg?height=200&width=400",
+    author_name: "John Doe",
+    author_image: "/placeholder.svg?height=50&width=50",
+    published_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), // 2 days ago
+    blog_categories: { name: "Industry Insights", slug: "industry-insights" },
+    blog_posts_tags: [
+      { tag_id: "1", blog_tags: { name: "Logistics", slug: "logistics" } },
+      { tag_id: "2", blog_tags: { name: "Technology", slug: "technology" } },
+    ],
+  },
+  {
+    id: "2",
+    title: "Cross-Border Transportation: Challenges and Solutions",
+    slug: "cross-border-transportation-challenges-solutions",
+    excerpt: "Navigating the complexities of cross-border logistics in the East African region.",
+    featured_image: "/placeholder.svg?height=200&width=400",
+    author_name: "Jane Smith",
+    author_image: "/placeholder.svg?height=50&width=50",
+    published_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(), // 5 days ago
+    blog_categories: { name: "Operations", slug: "operations" },
+    blog_posts_tags: [
+      { tag_id: "3", blog_tags: { name: "Cross-Border", slug: "cross-border" } },
+      { tag_id: "4", blog_tags: { name: "Regulations", slug: "regulations" } },
+    ],
+  },
+  {
+    id: "3",
+    title: "Sustainable Logistics Practices for a Greener Future",
+    slug: "sustainable-logistics-practices",
+    excerpt: "How logistics companies can reduce their environmental impact while maintaining efficiency.",
+    featured_image: "/placeholder.svg?height=200&width=400",
+    author_name: "David Mwangi",
+    author_image: "/placeholder.svg?height=50&width=50",
+    published_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 7 days ago
+    blog_categories: { name: "Sustainability", slug: "sustainability" },
+    blog_posts_tags: [
+      { tag_id: "5", blog_tags: { name: "Environment", slug: "environment" } },
+      { tag_id: "6", blog_tags: { name: "Green Logistics", slug: "green-logistics" } },
+    ],
+  },
+]
+
+// Mock featured post
+const mockFeaturedPost = {
+  id: "4",
+  title: "Revolutionizing Heavy Machinery Transport in Kenya",
+  slug: "revolutionizing-heavy-machinery-transport",
+  excerpt:
+    "How MAFL Logistics is setting new standards in the transportation of heavy machinery across Kenya and beyond.",
+  featured_image: "/placeholder.svg?height=400&width=600",
+  author_name: "Mahdi M. Issack",
+  author_image: "/placeholder.svg?height=50&width=50",
+  published_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+  blog_categories: { name: "Company News", slug: "company-news" },
+  blog_posts_tags: [
+    { tag_id: "7", blog_tags: { name: "Heavy Machinery", slug: "heavy-machinery" } },
+    { tag_id: "8", blog_tags: { name: "Innovation", slug: "innovation" } },
+  ],
+  is_featured: true,
+}
 
 async function getBlogPosts() {
-  const supabase = getSupabaseClient()
-  const { data: posts, error } = await supabase
-    .from("blog_posts")
-    .select(`
-      *,
-      blog_categories(name, slug),
-      blog_posts_tags(
-        tag_id,
-        blog_tags(name, slug)
-      )
-    `)
-    .eq("status", "published")
-    .order("published_at", { ascending: false })
-    .limit(10)
-
-  if (error) {
-    console.error("Error fetching blog posts:", error)
-    return []
-  }
-
-  return posts
+  // Return mock posts instead of querying Supabase
+  return mockPosts
 }
 
 async function getFeaturedPost() {
-  const supabase = getSupabaseClient()
-  const { data: featuredPosts, error } = await supabase
-    .from("blog_posts")
-    .select(`
-      *,
-      blog_categories(name, slug),
-      blog_posts_tags(
-        tag_id,
-        blog_tags(name, slug)
-      )
-    `)
-    .eq("status", "published")
-    .eq("is_featured", true)
-    .order("published_at", { ascending: false })
-    .limit(1)
-
-  if (error) {
-    console.error("Error fetching featured post:", error)
-    return null
-  }
-
-  // Return the first featured post or null if none exists
-  return featuredPosts && featuredPosts.length > 0 ? featuredPosts[0] : null
+  // Return mock featured post instead of querying Supabase
+  return mockFeaturedPost
 }
 
 export default async function BlogPage() {

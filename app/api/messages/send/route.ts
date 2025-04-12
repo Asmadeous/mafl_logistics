@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession, getServerAdminClient } from "@/lib/server-utils"
+import { getServerSession } from "@/lib/server-utils"
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,33 +12,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const senderId = session.user.id
     const { receiverId, content } = await req.json()
 
     if (!receiverId || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Use admin client (server-side only)
-    const supabaseAdmin = getServerAdminClient()
-
-    const { data, error } = await supabaseAdmin
-      .from("user_messages")
-      .insert({
-        sender_id: senderId,
-        receiver_id: receiverId,
-        content,
-      })
-      .select()
-
-    if (error) {
-      console.error("Error sending message:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    // Create a mock message
+    const message = {
+      id: `msg${Date.now()}`,
+      senderId: "currentUser",
+      receiverId,
+      content,
+      isRead: false,
+      createdAt: new Date().toISOString(),
     }
 
     return NextResponse.json({
       success: true,
-      message: data[0],
+      message,
     })
   } catch (error: any) {
     console.error("Error in send message API:", error)
