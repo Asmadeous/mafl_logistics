@@ -1,4 +1,4 @@
-// Define all admin routes in one place for easy management
+// Define all admin routes in one place for easy maintenance
 export const adminRoutes = {
   // Dashboard
   dashboard: "/admin",
@@ -19,13 +19,6 @@ export const adminRoutes = {
     edit: (id: string) => `/admin/users/edit/${id}`,
   },
 
-  // Employee management
-  employees: {
-    index: "/admin/employees",
-    new: "/admin/employees/new",
-    edit: (id: string) => `/admin/employees/edit/${id}`,
-  },
-
   // Customer management
   customers: {
     index: "/admin/customers",
@@ -39,6 +32,13 @@ export const adminRoutes = {
     new: "/admin/orders/new",
     edit: (id: string) => `/admin/orders/edit/${id}`,
     view: (id: string) => `/admin/orders/view/${id}`,
+  },
+
+  // Employee management
+  employees: {
+    index: "/admin/employees",
+    new: "/admin/employees/new",
+    edit: (id: string) => `/admin/employees/edit/${id}`,
   },
 
   // Invoice management
@@ -63,12 +63,4 @@ export const adminRoutes = {
 
   // Setup
   setup: "/admin/setup",
-
-  // Authentication
-  auth: {
-    login: "/admin/login",
-    forgotPassword: "/admin/forgot-password",
-    resetPassword: "/admin/reset-password",
-    verification: "/admin/verification",
-  },
 }

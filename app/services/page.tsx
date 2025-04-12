@@ -27,7 +27,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import type { JSX } from "react/jsx-runtime"
-import { urls } from "@/utils/urls"
+import { urls } from "@/config/urls"
 
 export default function ServicesPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
