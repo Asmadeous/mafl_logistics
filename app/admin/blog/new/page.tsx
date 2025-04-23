@@ -14,8 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/hooks/use-toast"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
-import { getSupabaseClient } from "@/lib/supabase-client"
 import dynamic from "next/dynamic"
+import { api } from "@/lib/api"
 
 // Dynamically import TipTap editor to avoid SSR issues
 const TipTapEditor = dynamic(() => import("@/components/tiptap-editor"), {
@@ -72,21 +72,26 @@ export default function NewBlogPostPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const supabase = getSupabaseClient()
-
         // Load categories
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from("blog_categories")
-          .select("id, name")
-          .order("name")
-
-        if (categoriesError) throw categoriesError
+        const categoriesData = await api.blog.getCategories()
         setCategories(categoriesData || [])
 
         // Load tags
-        const { data: tagsData, error: tagsError } = await supabase.from("blog_tags").select("id, name").order("name")
-
-        if (tagsError) throw tagsError
+        const tagsResponse = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/tags`, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            ...(localStorage.getItem("jwt_token")
+              ? {
+                  Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+                }
+              : {}),
+          },
+        })
+        if (!tagsResponse.ok) {
+          throw new Error(`HTTP error! status: ${tagsResponse.status}`)
+        }
+        const tagsData = await tagsResponse.json()
         setTags(tagsData || [])
       } catch (error) {
         console.error("Error loading data:", error)
@@ -168,52 +173,45 @@ export default function NewBlogPostPage() {
 
     setSaving(true)
     try {
-      const supabase = getSupabaseClient()
-
       // Prepare post data with the editor content
       const postData = {
         ...post,
         content: editorContent,
         status: publish ? "published" : "draft",
         published_at: publish ? new Date().toISOString() : null,
+        tag_ids: selectedTags,
       }
 
-      // Insert the post
-      const { data: newPost, error: insertError } = await supabase.from("blog_posts").insert(postData).select().single()
-
-      if (insertError) throw insertError
+      const newPost = await api.blog.createPost(postData)
 
       // If publishing and notification is enabled, send email notifications to subscribers
       if (publish && notifySubscribers && newPost) {
         try {
           // Add to notification queue
-          await supabase.from("blog_notification_queue").insert([
+          const notificationResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/posts/${newPost.id}`,
             {
-              post_id: newPost.id,
-              processed: false,
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({}),
+              credentials: "include",
             },
-          ])
+          )
 
-          toast({
-            title: "Notification Queued",
-            description: "Subscribers will be notified about this post.",
-          })
+          if (!notificationResponse.ok) {
+            console.error("Error queuing notification:", notificationResponse.status)
+          } else {
+            toast({
+              title: "Notification Queued",
+              description: "Subscribers will be notified about this post.",
+            })
+          }
         } catch (notifyError) {
           console.error("Error queuing notification:", notifyError)
           // Don't fail the whole operation if notification fails
         }
-      }
-
-      // Handle tags
-      if (selectedTags.length > 0) {
-        const tagInserts = selectedTags.map((tagId) => ({
-          post_id: newPost.id,
-          tag_id: tagId,
-        }))
-
-        const { error: insertTagsError } = await supabase.from("blog_posts_tags").insert(tagInserts)
-
-        if (insertTagsError) throw insertTagsError
       }
 
       toast({

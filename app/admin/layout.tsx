@@ -27,8 +27,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { useAuth } from "@/hooks/use-auth"
 import { adminRoutes } from "./routes"
+import { isTokenValid, getUserFromToken, removeToken, decodeToken, getToken } from "@/lib/jwt-utils"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -38,15 +38,90 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user, isAdmin, loading, logout } = useAuth()
+  const [isAuthPage, setIsAuthPage] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [adminUser, setAdminUser] = useState<any>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
 
+  // Update the isAuthPage check to include admin signup
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      router.push(adminRoutes.auth.login)
-    }
-  }, [user, isAdmin, loading, router])
+    // Check if the current page is an auth page
+    const authPaths = [
+      "/admin/login",
+      "/admin/forgot-password",
+      "/admin/reset-password",
+      "/admin/verification",
+      "/admin/auth",
+      "/admin/signup", // Make sure this is included
+    ]
+    setIsAuthPage(authPaths.includes(pathname))
+  }, [pathname])
 
-  if (loading) {
+  // Check authentication directly from the token
+  useEffect(() => {
+    const checkAdminAuth = () => {
+      try {
+        console.log("Checking admin authentication...")
+
+        // Check if token exists and is valid
+        if (!isTokenValid()) {
+          console.log("No valid token found for admin area")
+          setIsAuthenticated(false)
+          setAdminUser(null)
+          setIsCheckingAuth(false)
+          return
+        }
+
+        // Get token and decode it directly for debugging
+        const token = getToken()
+        const decoded = decodeToken(token || "")
+        console.log("Raw decoded token:", decoded)
+
+        // Check specifically for "scp": "employee" in the token
+        if (decoded && decoded.scp === "employee") {
+          console.log("Employee scope found in token")
+
+          // Get user info from token
+          const user = getUserFromToken()
+          console.log("User from token:", user)
+
+          setAdminUser(user)
+          setIsAuthenticated(true)
+          console.log("Admin authentication successful")
+        } else {
+          console.log("Employee scope not found in token:", decoded?.scp)
+          setIsAuthenticated(false)
+          setAdminUser(null)
+        }
+      } catch (error) {
+        console.error("Error checking admin authentication:", error)
+        setIsAuthenticated(false)
+        setAdminUser(null)
+      } finally {
+        setIsCheckingAuth(false)
+      }
+    }
+
+    checkAdminAuth()
+  }, [])
+
+  // Only redirect if not an auth page and user is not authenticated
+  useEffect(() => {
+    if (!isCheckingAuth && !isAuthenticated && !isAuthPage) {
+      console.log("Not authenticated for admin area, redirecting to login")
+      router.push("/admin/login")
+    }
+  }, [isAuthenticated, isAuthPage, isCheckingAuth, router])
+
+  // Logout function
+  const logout = () => {
+    removeToken()
+    setIsAuthenticated(false)
+    setAdminUser(null)
+    router.push("/admin/login")
+  }
+
+  if (isCheckingAuth) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -54,7 +129,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     )
   }
 
-  if (!user || !isAdmin) {
+  // For auth pages, render a simplified layout without the admin sidebar
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <main className="py-6">
+          <div className="mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
+        </main>
+      </div>
+    )
+  }
+
+  // If not an auth page and user is not authenticated, don't render anything
+  if (!isAuthenticated) {
     return null
   }
 
@@ -63,7 +150,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: "Dashboard",
       href: adminRoutes.dashboard,
       icon: LayoutDashboard,
-      current: pathname === adminRoutes.dashboard,
+      current: pathname === adminRoutes.dashboard || pathname === "/admin",
     },
     {
       name: "Orders",
@@ -263,8 +350,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <UserCircle className="h-4 w-4" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium">{user.user_metadata?.name || user.email}</p>
-                  <p className="text-xs text-muted-foreground">Administrator</p>
+                  <p className="text-sm font-medium">{adminUser?.name || adminUser?.email}</p>
+                  <p className="text-xs text-muted-foreground">Employee</p>
                 </div>
               </div>
               <DropdownMenu>
@@ -280,7 +367,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       <span>Back to Website</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign Out</span>
                   </DropdownMenuItem>
@@ -316,7 +403,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <span>Back to Website</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
+                <DropdownMenuItem onClick={logout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign Out</span>
                 </DropdownMenuItem>

@@ -58,7 +58,7 @@ export default function NewUserPage() {
         formData.append("user[avatar]", avatarFile)
       }
 
-      // Replace with actual API call when available
+      // This would be updated to use Rails API
       // await api.users.create(formData)
 
       toast({

@@ -1,309 +1,278 @@
 "use client"
 
+import type React from "react"
+
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
-import { Loader2, Bell, MessageSquare, CheckCircle, Settings } from "lucide-react"
-import { getSupabaseClient } from "@/lib/supabase-client"
+import { MessageSquare, Bell, Calendar, TruckIcon, FileText } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
-  const [messages, setMessages] = useState<any[]>([])
-  const [notifications, setNotifications] = useState<any[]>([])
-  const [loadingData, setLoadingData] = useState(true)
-  const supabase = getSupabaseClient()
+  const { user } = useAuth()
+  const [unreadMessages, setUnreadMessages] = useState(0)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [upcomingDeliveries, setUpcomingDeliveries] = useState<any[]>([])
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth")
-    }
-  }, [user, loading, router])
+    // Fetch unread messages count
+    // This would be replaced with an actual API call
+    setUnreadMessages(3)
 
-  useEffect(() => {
-    if (user) {
-      const fetchData = async () => {
-        try {
-          // Fetch messages
-          const { data: messagesData, error: messagesError } = await supabase
-            .from("user_messages")
-            .select("*, sender:sender_id(email, user_metadata)")
-            .eq("receiver_id", user.id)
-            .order("created_at", { ascending: false })
-            .limit(5)
+    // Fetch unread notifications count
+    // This would be replaced with an actual API call
+    setUnreadNotifications(5)
 
-          if (messagesError) throw messagesError
+    // Fetch recent activity
+    // This would be replaced with an actual API call
+    setRecentActivity([
+      {
+        id: 1,
+        type: "message",
+        title: "New message from Support",
+        description: "Your inquiry about delivery times has been answered",
+        time: "2 hours ago",
+      },
+      {
+        id: 2,
+        type: "notification",
+        title: "Order status updated",
+        description: "Your order #12345 has been shipped",
+        time: "1 day ago",
+      },
+      {
+        id: 3,
+        type: "system",
+        title: "System maintenance",
+        description: "The system will be down for maintenance on May 20, 2025",
+        time: "2 days ago",
+      },
+    ])
 
-          // Fetch notifications
-          const { data: notificationsData, error: notificationsError } = await supabase
-            .from("user_notifications")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false })
-            .limit(5)
-
-          if (notificationsError) throw notificationsError
-
-          setMessages(messagesData || [])
-          setNotifications(notificationsData || [])
-        } catch (error) {
-          console.error("Error fetching data:", error)
-        } finally {
-          setLoadingData(false)
-        }
-      }
-
-      fetchData()
-
-      // Set up realtime subscriptions
-      const messagesSubscription = supabase
-        .channel("messages-changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "user_messages",
-            filter: `receiver_id=eq.${user.id}`,
-          },
-          (payload) => {
-            setMessages((prev) => [payload.new, ...prev])
-          },
-        )
-        .subscribe()
-
-      const notificationsSubscription = supabase
-        .channel("notifications-changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "user_notifications",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            setNotifications((prev) => [payload.new, ...prev])
-          },
-        )
-        .subscribe()
-
-      return () => {
-        supabase.removeChannel(messagesSubscription)
-        supabase.removeChannel(notificationsSubscription)
-      }
-    }
-  }, [user, supabase])
-
-  if (loading || !user) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  const unreadMessages = messages.filter((msg) => !msg.is_read).length
-  const unreadNotifications = notifications.filter((notif) => !notif.is_read).length
+    // Fetch upcoming deliveries
+    // This would be replaced with an actual API call
+    setUpcomingDeliveries([
+      {
+        id: 1,
+        title: "Heavy machinery delivery",
+        location: "Nairobi to Mombasa",
+        date: "May 18, 2025",
+        status: "scheduled",
+      },
+      {
+        id: 2,
+        title: "Construction materials",
+        location: "Nairobi to Nakuru",
+        date: "May 22, 2025",
+        status: "processing",
+      },
+    ])
+  }, [])
 
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+    <div>
+      <h1 className="text-3xl font-bold mb-6">Welcome, {user?.name || "User"}!</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
-          <CardHeader>
-            <CardTitle>Welcome, {user.user_metadata?.name || user.email}</CardTitle>
-            <CardDescription>Your personal dashboard</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Messages</CardTitle>
+            <CardDescription>Your recent messages</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col items-center mb-4">
-              <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.name || user.email} />
-                <AvatarFallback>
-                  {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              {!user.avatar_url && (
-                <p className="text-sm text-muted-foreground mb-2">You haven't uploaded a profile picture yet</p>
-              )}
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/profile">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Update Profile
-                </Link>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <MessageSquare className="h-8 w-8 text-primary mr-2" />
+                <div>
+                  <p className="font-medium">{unreadMessages} unread messages</p>
+                  <p className="text-sm text-muted-foreground">Check your inbox</p>
+                </div>
+              </div>
+              <Button asChild>
+                <Link href="/dashboard/messages">View</Link>
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">
-              This is your personal dashboard where you can manage your account, view your orders, and more.
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-sm font-medium">Recent Orders</CardTitle>
-              <CardDescription>Track your recent orders</CardDescription>
-            </div>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <CheckCircle className="h-4 w-4" />
-            </Button>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Notifications</CardTitle>
+            <CardDescription>Your recent notifications</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">You have no recent orders.</p>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Bell className="h-8 w-8 text-primary mr-2" />
+                <div>
+                  <p className="font-medium">{unreadNotifications} unread notifications</p>
+                  <p className="text-sm text-muted-foreground">Stay updated</p>
+                </div>
+              </div>
+              <Button asChild>
+                <Link href="/dashboard/notifications">View</Link>
+              </Button>
+            </div>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" size="sm" className="w-full">
-              View All Orders
-            </Button>
-          </CardFooter>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-sm font-medium">Messages</CardTitle>
-              <CardDescription>Your recent messages</CardDescription>
-            </div>
-            <div className="relative">
-              <Button variant="ghost" size="icon" className="text-muted-foreground" asChild>
-                <Link href="/messages">
-                  <MessageSquare className="h-4 w-4" />
-                </Link>
-              </Button>
-              {unreadMessages > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full"
-                >
-                  {unreadMessages}
-                </Badge>
-              )}
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Support</CardTitle>
+            <CardDescription>Get help from our team</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingData ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <MessageSquare className="h-8 w-8 text-primary mr-2" />
+                <div>
+                  <p className="font-medium">Direct support</p>
+                  <p className="text-sm text-muted-foreground">Chat with our team</p>
+                </div>
               </div>
-            ) : messages.length > 0 ? (
-              <div className="space-y-4">
-                {messages.slice(0, 3).map((message) => (
-                  <div key={message.id} className="flex items-start gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>{message.sender?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {message.sender?.user_metadata?.name || message.sender?.email || "Unknown User"}
-                      </p>
-                      <p className="text-sm text-muted-foreground line-clamp-1">{message.content}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(message.created_at).toLocaleString()}</p>
-                    </div>
-                    {!message.is_read && (
-                      <div className="ml-auto">
-                        <div className="h-2 w-2 rounded-full bg-primary"></div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">You have no messages.</p>
-            )}
+              <Button asChild>
+                <Link href="/dashboard/support">Contact</Link>
+              </Button>
+            </div>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" size="sm" className="w-full" asChild>
-              <Link href="/messages">View All Messages</Link>
-            </Button>
-          </CardFooter>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-sm font-medium">Notifications</CardTitle>
-              <CardDescription>Your recent notifications</CardDescription>
-            </div>
-            <div className="relative">
-              <Button variant="ghost" size="icon" className="text-muted-foreground" asChild>
-                <Link href="/notifications">
-                  <Bell className="h-4 w-4" />
-                </Link>
-              </Button>
-              {unreadNotifications > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full"
-                >
-                  {unreadNotifications}
-                </Badge>
-              )}
-            </div>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Your latest activity on the platform</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingData ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : notifications.length > 0 ? (
-              <div className="space-y-4">
-                {notifications.slice(0, 5).map((notification) => (
-                  <div key={notification.id} className="flex items-start gap-3">
-                    <div
-                      className={`h-2 w-2 mt-2 rounded-full ${notification.is_read ? "bg-muted" : "bg-primary"}`}
-                    ></div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">{notification.title}</p>
-                      <p className="text-sm text-muted-foreground">{notification.message}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(notification.created_at).toLocaleString()}
-                      </p>
-                    </div>
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
+                  <div className="bg-primary/10 p-2 rounded-full">
+                    {activity.type === "message" && <MessageSquare className="h-5 w-5 text-primary" />}
+                    {activity.type === "notification" && <Bell className="h-5 w-5 text-primary" />}
+                    {activity.type === "system" && <FileText className="h-5 w-5 text-primary" />}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">You have no notifications.</p>
-            )}
+                  <div className="flex-1">
+                    <p className="font-medium">{activity.title}</p>
+                    <p className="text-sm text-muted-foreground">{activity.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" size="sm" className="w-full" asChild>
-              <Link href="/notifications">View All Notifications</Link>
-            </Button>
-          </CardFooter>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+            <CardTitle>Upcoming Deliveries</CardTitle>
+            <CardDescription>Your scheduled deliveries</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Name</p>
-                <p className="text-sm text-muted-foreground">{user.user_metadata?.name || "Not provided"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Account Type</p>
-                <p className="text-sm text-muted-foreground capitalize">{user.user_metadata?.role || "user"}</p>
-              </div>
+            <div className="space-y-4">
+              {upcomingDeliveries.map((delivery) => (
+                <div key={delivery.id} className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
+                  <div className="bg-primary/10 p-2 rounded-full">
+                    <TruckIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <p className="font-medium">{delivery.title}</p>
+                      <Badge variant={delivery.status === "scheduled" ? "outline" : "secondary"}>
+                        {delivery.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{delivery.location}</p>
+                    <div className="flex items-center text-xs text-muted-foreground mt-1">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {delivery.date}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Common tasks you might want to perform</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <Button variant="outline" className="h-auto py-4 flex flex-col items-center" asChild>
+              <Link href="/dashboard/profile">
+                <User className="h-6 w-6 mb-2" />
+                <span>Update Profile</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex flex-col items-center" asChild>
+              <Link href="/dashboard/messages">
+                <MessageSquare className="h-6 w-6 mb-2" />
+                <span>Check Messages</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex flex-col items-center" asChild>
+              <Link href="/dashboard/support">
+                <MessageSquare className="h-6 w-6 mb-2" />
+                <span>Contact Support</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex flex-col items-center" asChild>
+              <Link href="/dashboard/settings">
+                <Settings className="h-6 w-6 mb-2" />
+                <span>Settings</span>
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
+  )
+}
+
+function User(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function Settings(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   )
 }

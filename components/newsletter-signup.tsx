@@ -35,30 +35,13 @@ export function NewsletterSignup({
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/newsletter/subscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
+      await api.newsletter.subscribe(email)
+      setIsSuccess(true)
+      toast({
+        title: "Success!",
+        description: "You have successfully subscribed to the newsletter.",
+        variant: "success",
       })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setIsSuccess(true)
-        toast({
-          title: "Success!",
-          description: data.message,
-          variant: "success",
-        })
-      } else {
-        toast({
-          title: "Error",
-          description: data.message,
-          variant: "destructive",
-        })
-      }
     } catch (error) {
       toast({
         title: "Error",
@@ -87,32 +70,7 @@ export function NewsletterSignup({
               </p>
             </div>
           ) : (
-            <form
-              className="space-y-4"
-              onSubmit={async (e) => {
-                e.preventDefault()
-                setIsSubmitting(true)
-                const formData = new FormData(e.currentTarget)
-                const email = formData.get("email") as string
-                try {
-                  await api.newsletter.subscribe(email)
-                  setIsSuccess(true)
-                  toast({
-                    title: "Success!",
-                    description: "You have successfully subscribed to the newsletter.",
-                    variant: "success",
-                  })
-                } catch (error) {
-                  toast({
-                    title: "Error",
-                    description: "Failed to subscribe. Please try again later.",
-                    variant: "destructive",
-                  })
-                } finally {
-                  setIsSubmitting(false)
-                }
-              }}
-            >
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Input
                   type="email"
@@ -152,32 +110,7 @@ export function NewsletterSignup({
           <span>Thanks for subscribing!</span>
         </div>
       ) : (
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault()
-            setIsSubmitting(true)
-            const formData = new FormData(e.currentTarget)
-            const email = formData.get("email") as string
-            try {
-              await api.newsletter.subscribe(email)
-              setIsSuccess(true)
-              toast({
-                title: "Success!",
-                description: "You have successfully subscribed to the newsletter.",
-                variant: "success",
-              })
-            } catch (error) {
-              toast({
-                title: "Error",
-                description: "Failed to subscribe. Please try again later.",
-                variant: "destructive",
-              })
-            } finally {
-              setIsSubmitting(false)
-            }
-          }}
-          className="flex space-x-2"
-        >
+        <form onSubmit={handleSubmit} className="flex space-x-2">
           <Input
             type="email"
             placeholder="Your email address"

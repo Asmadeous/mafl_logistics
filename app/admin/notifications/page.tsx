@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import { getSupabaseClient } from "@/lib/supabase-client"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -65,27 +64,17 @@ export default function NotificationsPage() {
   const fetchUsers = async () => {
     setIsLoading(true)
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase.from("profiles").select("id, name, role").order("name")
-
-      if (error) throw error
-
-      const { data: userData, error: userError } = await supabase.auth.admin.listUsers()
-
-      if (userError) throw userError
-
-      // Combine profile and user data
-      const combined = data.map((profile) => {
-        const user = userData.users.find((u) => u.id === profile.id)
-        return {
-          id: profile.id,
-          email: user?.email || "Unknown",
-          name: profile.name,
-          role: profile.role,
-        }
+      // Use Rails API to fetch users
+      const response = await fetch(`${process.env.RAILS_API_URL}/contacts`, {
+        // credentials: "include",
       })
 
-      setUsers(combined)
+      if (!response.ok) {
+        throw new Error("Failed to fetch users")
+      }
+
+      const data = await response.json()
+      setUsers(data)
     } catch (error) {
       console.error("Error fetching users:", error)
       toast({
@@ -100,14 +89,16 @@ export default function NotificationsPage() {
 
   const fetchNotificationHistory = async () => {
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase
-        .from("user_notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20)
+      // Use Rails API to fetch notification history
+      const response = await fetch(`${process.env.RAILS_API_URL}/notifications`, {
+        credentials: "include",
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to fetch notification history")
+      }
+
+      const data = await response.json()
       setNotificationHistory(data || [])
     } catch (error) {
       console.error("Error fetching notification history:", error)
@@ -117,41 +108,24 @@ export default function NotificationsPage() {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsSending(true)
     try {
-      const supabase = getSupabaseClient()
+      // Use Rails API to send notifications
+      const response = await fetch(`${process.env.RAILS_API_URL}/notifications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        credentials: "include",
+      })
 
-      // Determine recipients based on selection
-      let recipients: string[] = []
-
-      if (data.recipient === "all") {
-        recipients = users.map((user) => user.id)
-      } else if (data.recipient === "user" && data.userId) {
-        recipients = [data.userId]
-      } else if (data.recipient === "role" && data.userRole) {
-        recipients = users.filter((user) => user.role === data.userRole).map((user) => user.id)
+      if (!response.ok) {
+        throw new Error("Failed to send notifications")
       }
-
-      if (recipients.length === 0) {
-        throw new Error("No recipients selected")
-      }
-
-      // Create notifications for each recipient
-      const notifications = recipients.map((userId) => ({
-        user_id: userId,
-        title: data.title,
-        message: data.message,
-        type: data.type,
-        link: data.link || null,
-        is_read: false,
-      }))
-
-      const { error } = await supabase.from("user_notifications").insert(notifications)
-
-      if (error) throw error
 
       toast({
         title: "Success",
-        description: `Notification sent to ${recipients.length} user(s)`,
-        variant: "success",
+        description: `Notification sent successfully`,
+        // default: "success",
       })
 
       // Reset form and refresh history
@@ -178,10 +152,15 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (id: string) => {
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase.from("user_notifications").delete().eq("id", id)
+      // Use Rails API to delete notification
+      const response = await fetch(`${process.env.RAILS_API_URL}/notifications/${id}`, {
+        method: "DELETE",
+        // credentials: "include",
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to delete notification")
+      }
 
       toast({
         title: "Success",

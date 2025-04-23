@@ -23,6 +23,12 @@ const formSchema = z
   .object({
     name: z.string().min(2, { message: "Name must be at least 2 characters" }),
     email: z.string().email({ message: "Please enter a valid email address" }),
+    phone: z
+      .string()
+      .min(10, { message: "Phone number must be at least 10 digits" })
+      .regex(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,4}[-\s.]?[0-9]{1,9}$/, {
+        message: "Please enter a valid phone number",
+      }),
     password: z.string().min(8, { message: "Password must be at least 8 characters" }),
     password_confirmation: z.string(),
     terms: z.boolean().refine((val) => val === true, {
@@ -35,6 +41,11 @@ const formSchema = z
     path: ["password_confirmation"],
   })
 
+// Maximum file size (1MB)
+const MAX_FILE_SIZE = 1 * 1024 * 1024
+// Maximum dimensions for image compression
+const MAX_IMAGE_DIMENSIONS = 500
+
 export default function SignupForm() {
   const { registerUser, googleAuthUser } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
@@ -42,6 +53,7 @@ export default function SignupForm() {
   const router = useRouter()
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -49,16 +61,27 @@ export default function SignupForm() {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
       password: "",
       password_confirmation: "",
       terms: false,
     },
   })
 
-  // Handle avatar file selection
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle avatar file selection with validation
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null)
     const file = event.target.files?.[0]
-    if (file) {
+
+    if (!file) return
+
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError("Image is too large. Maximum size is 1MB.")
+      return
+    }
+
+    try {
       // Set the file in the form
       form.setValue("avatar", file)
 
@@ -68,30 +91,126 @@ export default function SignupForm() {
         setAvatarPreview(e.target?.result as string)
       }
       reader.readAsDataURL(file)
+    } catch (err) {
+      console.error("Error processing avatar:", err)
+      setFileError("Error processing image. Please try another image.")
     }
   }
 
-  // Form submission handler
+  // Compress and resize image before converting to base64
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const img = new Image()
+        img.onload = () => {
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > MAX_IMAGE_DIMENSIONS) {
+              height = Math.round((height * MAX_IMAGE_DIMENSIONS) / width)
+              width = MAX_IMAGE_DIMENSIONS
+            }
+          } else {
+            if (height > MAX_IMAGE_DIMENSIONS) {
+              width = Math.round((width * MAX_IMAGE_DIMENSIONS) / height)
+              height = MAX_IMAGE_DIMENSIONS
+            }
+          }
+
+          // Create canvas and draw resized image
+          const canvas = document.createElement("canvas")
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext("2d")
+
+          if (!ctx) {
+            reject(new Error("Could not get canvas context"))
+            return
+          }
+
+          ctx.drawImage(img, 0, 0, width, height)
+
+          // Get base64 data with reduced quality
+          const base64String = canvas.toDataURL("image/jpeg", 0.7)
+          // Extract only the base64 data part (remove the data:image/jpeg;base64, prefix)
+          const base64Data = base64String.split(",")[1]
+          resolve(base64Data)
+        }
+        img.onerror = () => {
+          reject(new Error("Failed to load image"))
+        }
+        img.src = event.target?.result as string
+      }
+      reader.onerror = () => {
+        reject(new Error("Failed to read file"))
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // Update the onSubmit function to ensure JSON submission with correct field names
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true)
       setError(null)
 
-      // Remove terms from the payload
-      const { terms, ...userData } = values
+      // Remove terms from the payload and map field names correctly
+      const { terms, avatar, name, phone, ...otherUserData } = values
 
-      // Create FormData for file upload
-      const formData = new FormData()
-      Object.entries(userData).forEach(([key, value]) => {
-        if (key === "avatar" && value instanceof File) {
-          formData.append("user[avatar]", value)
-        } else {
-          formData.append(`user[${key}]`, value as string)
+      // Create the payload object with correct field names
+      const payload: any = {
+        user: {
+          full_name: name, // Map 'name' to 'full_name'
+          phone_number: phone, // Map 'phone' to 'phone_number'
+          ...otherUserData,
+        },
+      }
+
+      // If there's an avatar, compress it and add to payload
+      if (avatar instanceof File) {
+        try {
+          // Compress and resize the image before converting to base64
+          const compressedBase64 = await compressImage(avatar)
+          payload.user.avatar = compressedBase64
+          console.log("Avatar compressed and added to payload")
+        } catch (err) {
+          console.error("Error compressing avatar:", err)
+          // Continue with registration even if avatar processing fails
+          setFileError("Error processing image. Continuing without avatar.")
         }
+      }
+
+      console.log("Sending JSON payload")
+
+      // Force JSON submission by explicitly calling the API
+      const API_URL = process.env.NEXT_PUBLIC_RAILS_API_URL
+      const response = await fetch(`${API_URL}/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
       })
 
-      await registerUser(formData)
-      // Redirect is handled in the auth hook
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `Registration failed with status ${response.status}`)
+      }
+
+      // Check for JWT token in response
+      const data = await response.json()
+      if (data && data.token) {
+        // Use the JWT token handling from jwt-utils
+        const { setToken } = await import("@/lib/jwt-utils")
+        setToken(data.token)
+      }
+
+      // Redirect to login page with success message
+      router.push("/auth/login?registered=true")
     } catch (err: any) {
       setError(err.message || "Failed to register. Please try again.")
     } finally {
@@ -140,6 +259,9 @@ export default function SignupForm() {
                 </div>
               </div>
 
+              {fileError && <div className="text-sm text-red-500 text-center">{fileError}</div>}
+              <div className="text-xs text-muted-foreground text-center">Maximum file size: 1MB</div>
+
               <FormField
                 control={form.control}
                 name="name"
@@ -162,6 +284,20 @@ export default function SignupForm() {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input placeholder="your.email@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 (555) 123-4567" {...field} type="tel" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

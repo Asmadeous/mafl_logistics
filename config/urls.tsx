@@ -1,0 +1,40 @@
+export const urls = {
+  contact: {
+    location: "https://maps.app.goo.gl/MzE5MgmE939gZiLp6",
+    phone: "+254722555666",
+    email: "info@mafllogistics.com",
+    website: "https://www.mafllogistics.com",
+    whatsapp: "https://wa.me/254722555666",
+  },
+  social: {
+    facebook: "https://www.facebook.com/mafllogistics",
+    instagram: "https://www.instagram.com/mafllogistics",
+  },
+  images: {
+    logisticsHero: "/images/logistics-hero.jpg",
+    heavyMachineryTransport: "/images/heavy-machinery-transport.jpg",
+    crossBorderLogistics: "/images/cross-border-logistics.jpg",
+    roadConstruction: "/images/road-construction.jpg",
+    heavyMachineryHire: "/images/heavy-machinery-hire.jpg",
+    coldChainLogistics: "/images/cold-chain-logistics.jpg",
+    projectCargo: "/images/project-cargo.jpg",
+    hazardousGoods: "/images/hazardous-goods.jpg",
+    lastMileDelivery: "/images/last-mile-delivery.jpg",
+    fleetLeasing: "/images/fleet-leasing.jpg",
+    partnerLogos: {
+      softcare: "/images/partners/softcare.png",
+      malimount: "/images/partners/malimount.png",
+      silvermon: "/images/partners/silvermon.png",
+      makueniCounty: "/images/partners/makueni-county.png",
+      amboseli: "/images/partners/amboseli.png",
+      kpa: "/images/partners/kpa.png",
+    },
+  },
+  videos: {
+    landingPage: "/videos/landing-page.mp4",
+    heavyMachinery: "/videos/heavy-machinery.mp4",
+    coldChainLogistics: "/videos/cold-chain-logistics.mp4",
+    projectCargo: "/videos/project-cargo.mp4",
+    hazardousGoods: "/videos/hazardous-goods.mp4",
+  },
+}

@@ -9,13 +9,14 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileUpload } from "@/components/ui/file-upload"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Form validation schema
 const formSchema = z
@@ -26,6 +27,7 @@ const formSchema = z
     password_confirmation: z.string(),
     avatar: z.any().nullable().optional(),
     full_picture: z.string().nullable().optional(),
+    role: z.string().min(1, { message: "Role is required" }),
     terms: z.boolean().refine((val) => val === true, {
       message: "You must accept the terms and conditions",
     }),
@@ -54,6 +56,7 @@ export default function AdminSignupForm() {
       password_confirmation: "",
       avatar: null,
       full_picture: null,
+      role: "admin", // Default role
       terms: false,
     },
   })
@@ -89,6 +92,7 @@ export default function AdminSignupForm() {
       formData.append("employee[email]", userData.email)
       formData.append("employee[password]", userData.password)
       formData.append("employee[password_confirmation]", userData.password_confirmation)
+      formData.append("employee[role]", userData.role)
 
       if (userData.avatar) {
         formData.append("employee[avatar]", userData.avatar)
@@ -188,6 +192,30 @@ export default function AdminSignupForm() {
                   <FormControl>
                     <Input placeholder="admin@example.com" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Administrator</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="staff">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormDescription>Select the appropriate role for this admin account</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

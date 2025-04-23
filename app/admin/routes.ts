@@ -1,7 +1,16 @@
-// Define all admin routes in one place for easy maintenance
+// Update the adminRoutes object to include the dashboard route
 export const adminRoutes = {
   // Dashboard
-  dashboard: "/admin",
+  dashboard: "/admin/dashboard",
+
+  // Auth routes
+  auth: {
+    login: "/admin/login",
+    signup: "/admin/signup",
+    forgotPassword: "/admin/forgot-password",
+    resetPassword: "/admin/reset-password",
+    verification: "/admin/verification",
+  },
 
   // Blog management
   blog: {

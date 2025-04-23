@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast } from "@/hooks/use-toast"
 import { Trash2, Plus, Save, Mail } from "lucide-react"
-import { getSupabaseClient } from "@/lib/supabase-client"
 import { format } from "date-fns"
 
 type Subscriber = {
@@ -31,13 +30,16 @@ export default function SubscribersPage() {
   const fetchSubscribers = async () => {
     setLoading(true)
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase
-        .from("newsletter_subscribers")
-        .select("*")
-        .order("created_at", { ascending: false })
+      // Use the Rails API instead of Supabase
+      const response = await fetch(`${process.env.RAILS_API_URL}/api/newsletter_subscribers`, {
+        credentials: "include",
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to fetch subscribers")
+      }
+
+      const data = await response.json()
       setSubscribers(data || [])
     } catch (error) {
       console.error("Error fetching subscribers:", error)
@@ -62,14 +64,8 @@ export default function SubscribersPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-
       // Check if email already exists
-      const { data: existingSubscriber } = await supabase
-        .from("newsletter_subscribers")
-        .select("id")
-        .eq("email", newEmail)
-        .single()
+      const existingSubscriber = subscribers.find((sub) => sub.email === newEmail)
 
       if (existingSubscriber) {
         toast({
@@ -80,14 +76,24 @@ export default function SubscribersPage() {
         return
       }
 
-      const { error } = await supabase.from("newsletter_subscribers").insert([
-        {
-          email: newEmail,
-          status: "active",
+      // Use the Rails API instead of Supabase
+      const response = await fetch(`${process.env.RAILS_API_URL}/api/newsletter_subscribers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ])
+        credentials: "include",
+        body: JSON.stringify({
+          subscriber: {
+            email: newEmail,
+            status: "active",
+          },
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to add subscriber")
+      }
 
       toast({
         title: "Success",
@@ -110,12 +116,25 @@ export default function SubscribersPage() {
 
   const toggleSubscriberStatus = async (id: string, currentStatus: string) => {
     try {
-      const supabase = getSupabaseClient()
       const newStatus = currentStatus === "active" ? "inactive" : "active"
 
-      const { error } = await supabase.from("newsletter_subscribers").update({ status: newStatus }).eq("id", id)
+      // Use the Rails API instead of Supabase
+      const response = await fetch(`${process.env.RAILS_API_URL}/api/newsletter_subscribers/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          subscriber: {
+            status: newStatus,
+          },
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to update subscriber status")
+      }
 
       toast({
         title: "Success",
@@ -140,10 +159,15 @@ export default function SubscribersPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase.from("newsletter_subscribers").delete().eq("id", id)
+      // Use the Rails API instead of Supabase
+      const response = await fetch(`${process.env.RAILS_API_URL}/api/newsletter_subscribers/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error("Failed to delete subscriber")
+      }
 
       toast({
         title: "Success",

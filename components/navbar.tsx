@@ -15,9 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Menu, X, User, LogOut, Settings, MessageSquare, Bell } from "lucide-react"
+import { Menu, X, UserIcon, LogOut, Settings, Bell } from "lucide-react"
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
-import { MessageDropdown } from "@/components/messaging/message-dropdown"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -89,7 +88,6 @@ export default function Navbar() {
             <>
               <div className="hidden md:flex items-center gap-2">
                 <NotificationDropdown />
-                <MessageDropdown />
               </div>
 
               <DropdownMenu>
@@ -97,9 +95,16 @@ export default function Navbar() {
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <div className="relative">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.name || user.email} />
+                        <AvatarImage
+                          src={user?.avatar_url || "/placeholder.svg"}
+                          alt={user?.name || user?.email || "User"}
+                        />
                         <AvatarFallback>
-                          {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                          {user?.name
+                            ? user.name.charAt(0).toUpperCase()
+                            : user?.email
+                              ? user.email.charAt(0).toUpperCase()
+                              : "U"}
                         </AvatarFallback>
                       </Avatar>
                       <span
@@ -124,14 +129,8 @@ export default function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href={isAdmin ? "/admin" : "/dashboard"} className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
+                      <UserIcon className="mr-2 h-4 w-4" />
                       <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/messages" className="flex items-center">
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      <span>Messages</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -183,14 +182,6 @@ export default function Navbar() {
               ))}
               {user && (
                 <>
-                  <Link
-                    href="/messages"
-                    className="text-sm font-medium transition-colors hover:text-primary flex items-center"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Messages
-                  </Link>
                   <Link
                     href="/notifications"
                     className="text-sm font-medium transition-colors hover:text-primary flex items-center"

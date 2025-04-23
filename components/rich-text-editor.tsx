@@ -1,30 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import dynamic from "next/dynamic"
-import "react-quill/dist/quill.snow.css"
+import { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+import type { ReactQuillProps, ReactQuill } from "react-quill";
 
-// Import React-Quill dynamically to avoid SSR issues
-const ReactQuill = dynamic(
+// Define type for the forwarded ref component
+interface ReactQuillWithRefProps extends ReactQuillProps {
+  forwardedRef: React.Ref<ReactQuill>;
+}
+
+// Dynamic import for ReactQuill to avoid SSR issues
+const DynamicReactQuill = dynamic(
   async () => {
-    const { default: RQ } = await import("react-quill")
-    // @ts-ignore - This is a workaround for the findDOMNode error
-    return function comp({ forwardedRef, ...props }) {
-      return <RQ ref={forwardedRef} {...props} />
-    }
+    const { default: RQ } = await import("react-quill");
+    return function ReactQuillWithRef({ forwardedRef, ...props }: ReactQuillWithRefProps) {
+      return <RQ ref={forwardedRef} {...props} />;
+    };
   },
-  { ssr: false },
-)
+  { ssr: false }
+);
 
 interface RichTextEditorProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
-  const [mounted, setMounted] = useState(false)
-  const quillRef = useRef<any>(null)
+  const [mounted, setMounted] = useState(false);
+  const quillRef = useRef<ReactQuill>(null);
 
   // Quill modules and formats
   const modules = {
@@ -37,7 +42,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       ["link", "image"],
       ["clean"],
     ],
-  }
+  };
 
   const formats = [
     "header",
@@ -51,11 +56,11 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     "align",
     "link",
     "image",
-  ]
+  ];
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return (
@@ -70,12 +75,12 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="rich-text-editor">
-      <ReactQuill
+      <DynamicReactQuill
         forwardedRef={quillRef}
         theme="snow"
         value={value}
@@ -103,5 +108,5 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
         }
       `}</style>
     </div>
-  )
+  );
 }

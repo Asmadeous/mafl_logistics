@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast } from "@/hooks/use-toast"
 import { Edit, Trash2, Plus, Save, X } from "lucide-react"
-import { getSupabaseClient } from "@/lib/supabase-client"
 
 type Tag = {
   id: string
@@ -31,11 +30,26 @@ export default function TagsPage() {
   const fetchTags = async () => {
     setLoading(true)
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase.from("blog_tags").select("*").order("name", { ascending: true })
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/tags`, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
+        },
+      })
 
-      if (error) throw error
-      setTags(data || [])
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tags: ${response.status}`)
+      }
+
+      const data = await response.json()
+      // Handle both { tags: [...] } and [...] formats
+      const tagsArray = Array.isArray(data) ? data : Array.isArray(data.tags) ? data.tags : []
+      setTags(tagsArray)
     } catch (error) {
       console.error("Error fetching tags:", error)
       toast({
@@ -43,6 +57,7 @@ export default function TagsPage() {
         description: "Failed to load tags. Please try again.",
         variant: "destructive",
       })
+      setTags([])
     } finally {
       setLoading(false)
     }
@@ -80,14 +95,14 @@ export default function TagsPage() {
     if (isNew) {
       setNewTag((prev) => ({
         ...prev,
-        slug: generateSlug(value),
+        slug: value, // Allow custom slug input
       }))
     } else {
       setEditingTag((prev) => {
         if (!prev) return null
         return {
           ...prev,
-          slug: generateSlug(value),
+          slug: value, // Allow custom slug input
         }
       })
     }
@@ -104,22 +119,34 @@ export default function TagsPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase.from("blog_tags").insert([
-        {
-          name: newTag.name,
-          slug: newTag.slug,
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/tags`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
         },
-      ])
+        body: JSON.stringify({
+          tag: {
+            name: newTag.name,
+            slug: newTag.slug,
+          },
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Failed to add tag: ${response.status}`)
+      }
 
       toast({
         title: "Success",
         description: "Tag added successfully.",
       })
 
-      // Reset form and refresh tags
       setNewTag({ name: "", slug: "" })
       setIsAdding(false)
       fetchTags()
@@ -144,23 +171,34 @@ export default function TagsPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase
-        .from("blog_tags")
-        .update({
-          name: editingTag.name,
-          slug: editingTag.slug,
-        })
-        .eq("id", editingTag.id)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/tags/${editingTag.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
+        },
+        body: JSON.stringify({
+          tag: {
+            name: editingTag.name,
+            slug: editingTag.slug,
+          },
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Failed to update tag: ${response.status}`)
+      }
 
       toast({
         title: "Success",
         description: "Tag updated successfully.",
       })
 
-      // Reset editing state and refresh tags
       setEditingTag(null)
       fetchTags()
     } catch (error) {
@@ -179,17 +217,28 @@ export default function TagsPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase.from("blog_tags").delete().eq("id", id)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/tags/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
+        },
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Failed to delete tag: ${response.status}`)
+      }
 
       toast({
         title: "Success",
         description: "Tag deleted successfully.",
       })
 
-      // Refresh tags
       fetchTags()
     } catch (error) {
       console.error("Error deleting tag:", error)

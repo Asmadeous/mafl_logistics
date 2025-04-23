@@ -50,7 +50,8 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
       try {
         setIsLoading(true)
 
-        // Mock data - replace with actual API call
+        // This would be updated to fetch from Rails API
+        // For now, use mock data
         const userData = {
           id: params.id,
           name: "John Doe",
@@ -105,7 +106,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
         formData.append("user[avatar]", avatarFile)
       }
 
-      // Replace with actual API call when available
+      // This would be updated to use Rails API
       // await api.users.update(params.id, formData)
 
       toast({

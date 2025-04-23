@@ -26,7 +26,8 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      // Mock data - replace with actual API call
+      // This would be updated to fetch from Rails API
+      // For now, use mock data
       const mockUsers = [
         {
           id: "1",
@@ -73,7 +74,7 @@ export default function UsersPage() {
     }
 
     try {
-      // Replace with actual API call
+      // This would be updated to use Rails API
       // await api.users.delete(id)
 
       // Update local state

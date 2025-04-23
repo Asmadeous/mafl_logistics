@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/hooks/use-auth"
+import { useCallback, useState, useEffect, useRef } from "react"
+import { useAuth } from "./use-auth"
 
 type UserStatus = {
   status: "online" | "away" | "offline"
@@ -16,6 +16,44 @@ const mockStatuses: Record<string, UserStatus> = {
 export function useUserStatus() {
   const { user } = useAuth()
   const [userStatuses, setUserStatuses] = useState<Record<string, UserStatus>>(mockStatuses)
+  const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Function to reset the activity timer
+  const resetActivityTimer = useCallback(() => {
+    if (activityTimeoutRef.current) {
+      clearTimeout(activityTimeoutRef.current)
+    }
+
+    // If user was away, set back to online
+    setUserStatuses((prev) => {
+      const userId = user?.id
+      if (!userId) return prev
+
+      if (prev[userId]?.status === "away") {
+        return {
+          ...prev,
+          [userId]: { status: "online", lastSeen: new Date().toISOString() },
+        }
+      }
+      return prev
+    })
+
+    // Set timeout to mark user as away after 5 minutes of inactivity
+    activityTimeoutRef.current = setTimeout(
+      () => {
+        setUserStatuses((prev) => {
+          const userId = user?.id
+          if (!userId) return prev
+
+          return {
+            ...prev,
+            [userId]: { status: "away", lastSeen: new Date().toISOString() },
+          }
+        })
+      },
+      5 * 60 * 1000,
+    ) // 5 minutes
+  }, [user?.id])
 
   // Update current user's status
   useEffect(() => {
@@ -26,32 +64,6 @@ export function useUserStatus() {
       ...prev,
       [user.id]: { status: "online", lastSeen: new Date().toISOString() },
     }))
-
-    // Set up event listeners for user activity/inactivity
-    let activityTimeout: NodeJS.Timeout
-
-    const resetActivityTimer = () => {
-      clearTimeout(activityTimeout)
-
-      // If user was away, set back to online
-      if (userStatuses[user.id]?.status === "away") {
-        setUserStatuses((prev) => ({
-          ...prev,
-          [user.id]: { status: "online", lastSeen: new Date().toISOString() },
-        }))
-      }
-
-      // Set timeout to mark user as away after 5 minutes of inactivity
-      activityTimeout = setTimeout(
-        () => {
-          setUserStatuses((prev) => ({
-            ...prev,
-            [user.id]: { status: "away", lastSeen: new Date().toISOString() },
-          }))
-        },
-        5 * 60 * 1000,
-      ) // 5 minutes
-    }
 
     // Listen for user activity
     const activityEvents = ["mousedown", "keydown", "touchstart", "scroll"]
@@ -64,12 +76,14 @@ export function useUserStatus() {
 
     // Cleanup function
     return () => {
-      clearTimeout(activityTimeout)
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current)
+      }
       activityEvents.forEach((event) => {
         window.removeEventListener(event, resetActivityTimer)
       })
     }
-  }, [user, userStatuses])
+  }, [user, resetActivityTimer])
 
   // Function to get a specific user's status
   const getUserStatus = (userId: string): UserStatus => {

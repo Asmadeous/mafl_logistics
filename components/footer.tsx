@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
 import { Facebook, Instagram, MapPin, Mail, Phone, Globe } from "lucide-react"
+// Make sure the import is correct
 import { urls } from "@/config/urls"
 import { NewsletterSignup } from "@/components/newsletter-signup"
 

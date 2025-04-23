@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast } from "@/hooks/use-toast"
 import { Edit, Trash2, Plus, Save, X } from "lucide-react"
-import { getSupabaseClient } from "@/lib/supabase-client"
 
 type Category = {
   id: string
@@ -32,11 +31,26 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     setLoading(true)
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase.from("blog_categories").select("*").order("name", { ascending: true })
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/categories`, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
+        },
+      })
 
-      if (error) throw error
-      setCategories(data || [])
+      if (!response.ok) {
+        throw new Error(`Failed to fetch categories: ${response.status}`)
+      }
+
+      const data = await response.json()
+      // Handle both { categories: [...] } and [...] formats
+      const categoriesArray = Array.isArray(data) ? data : Array.isArray(data.categories) ? data.categories : []
+      setCategories(categoriesArray)
     } catch (error) {
       console.error("Error fetching categories:", error)
       toast({
@@ -44,6 +58,7 @@ export default function CategoriesPage() {
         description: "Failed to load categories. Please try again.",
         variant: "destructive",
       })
+      setCategories([])
     } finally {
       setLoading(false)
     }
@@ -81,14 +96,14 @@ export default function CategoriesPage() {
     if (isNew) {
       setNewCategory((prev) => ({
         ...prev,
-        slug: generateSlug(value),
+        slug: value,
       }))
     } else {
       setEditingCategory((prev) => {
         if (!prev) return null
         return {
           ...prev,
-          slug: generateSlug(value),
+          slug: value,
         }
       })
     }
@@ -122,23 +137,35 @@ export default function CategoriesPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase.from("blog_categories").insert([
-        {
-          name: newCategory.name,
-          slug: newCategory.slug,
-          description: newCategory.description || null,
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/categories`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
         },
-      ])
+        body: JSON.stringify({
+          category: {
+            name: newCategory.name,
+            slug: newCategory.slug,
+            description: newCategory.description || null,
+          },
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Failed to add category: ${response.status}`)
+      }
 
       toast({
         title: "Success",
         description: "Category added successfully.",
       })
 
-      // Reset form and refresh categories
       setNewCategory({ name: "", slug: "", description: "" })
       setIsAdding(false)
       fetchCategories()
@@ -163,24 +190,35 @@ export default function CategoriesPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase
-        .from("blog_categories")
-        .update({
-          name: editingCategory.name,
-          slug: editingCategory.slug,
-          description: editingCategory.description,
-        })
-        .eq("id", editingCategory.id)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/categories/${editingCategory.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
+        },
+        body: JSON.stringify({
+          category: {
+            name: editingCategory.name,
+            slug: editingCategory.slug,
+            description: editingCategory.description || null,
+          },
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Failed to update category: ${response.status}`)
+      }
 
       toast({
         title: "Success",
         description: "Category updated successfully.",
       })
 
-      // Reset editing state and refresh categories
       setEditingCategory(null)
       fetchCategories()
     } catch (error) {
@@ -199,17 +237,28 @@ export default function CategoriesPage() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase.from("blog_categories").delete().eq("id", id)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_RAILS_API_URL}/blog/categories/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(localStorage.getItem("jwt_token")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("jwt_token")}`,
+              }
+            : {}),
+        },
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Failed to delete category: ${response.status}`)
+      }
 
       toast({
         title: "Success",
         description: "Category deleted successfully.",
       })
 
-      // Refresh categories
       fetchCategories()
     } catch (error) {
       console.error("Error deleting category:", error)
