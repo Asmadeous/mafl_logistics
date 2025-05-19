@@ -1,230 +1,295 @@
-const API_URL = process.env.NEXT_PUBLIC_RAILS_API_URL;
+// Base API URL from environment variables
+const API_URL =
+  typeof window !== "undefined"
+    ? process.env.NEXT_PUBLIC_API_URL
+    : process.env.RAILS_API_URL || "http://localhost:3000";
 
-// Helper for common request options
-const createRequestOptions = (method = 'GET', body: object | null = null) => {
-  const options: { method: string; headers: { Authorization?: string; "Content-Type": string; Accept: string }; body?: string } = {
-    method,
-    headers: {
+// Helper function for making API requests
+const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
+  try {
+    const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+
+    const headers = {
       "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(localStorage.getItem("jwt_token")
-        ? { Authorization: `Bearer ${localStorage.getItem("jwt_token")}` }
-        : {}),
-    },
-  };
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    };
 
-  if (body) {
-    options.body = JSON.stringify(body);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`🔄 API Request: ${API_URL}${endpoint}`, {
+        method: options.method || "GET",
+        headers,
+        body: options.body ? JSON.parse(options.body as string) : undefined,
+      });
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    let data;
+    try {
+      const contentType = response.headers.get("content-type");
+      data = contentType?.includes("application/json")
+        ? await response.json()
+        : await response.text();
+    } catch (error) {
+      console.error("Response parsing error:", error);
+      throw new Error("Failed to parse server response");
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`✅ API Response: ${API_URL}${endpoint}`, {
+        status: response.status,
+        data,
+      });
+    }
+
+    if (!response.ok) {
+      return {
+        data: null,
+        error: data.error || data.message || `API error: ${response.status}`,
+        status: response.status,
+      };
+    }
+
+    return { data, error: null, status: response.status };
+  } catch (error: any) {
+    console.error("API request failed:", error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+      status: 500,
+    };
   }
-
-  return options;
 };
 
-// Handle common error responses
-const handleErrorResponse = async (response: Response) => {
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error || err.message || `Request failed with status: ${response.status}`);
-  }
-  return response;
-};
-
-export const api = {
+const api = {
   auth: {
-    logoutUser: async () => {
-      const response = await fetch(`${API_URL}/users/sign_out`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          ...(localStorage.getItem("jwt_token")
-            ? { Authorization: `Bearer ${localStorage.getItem("jwt_token")}` }
-            : {}),
-        },
-      });
-      if (!response.ok) throw new Error("Logout failed");
+    user: {
+      login: async (email: string, password: string, rememberMe: boolean = false) =>
+        fetchAPI("/users/sign_in", {
+          method: "POST",
+          body: JSON.stringify({ user: { email, password, rememberMe } }),
+        }),
+      register: async (userData: any) =>
+        fetchAPI("/users", {
+          method: "POST",
+          body: JSON.stringify({ user: userData }),
+        }),
+      getCurrentUser: async () => fetchAPI("/users/profile"),
+      updateProfile: async (userData: any) =>
+        fetchAPI("/users/profile", {
+          method: "PUT",
+          body: JSON.stringify({ user: userData }),
+        }),
+      resetPassword: async (email: string) =>
+        fetchAPI("/users/password", {
+          method: "POST",
+          body: JSON.stringify({ user: { email } }),
+        }),
+      updatePassword: async (token: string, password: string, passwordConfirmation: string) =>
+        fetchAPI("/users/password", {
+          method: "PUT",
+          body: JSON.stringify({
+            user: {
+              reset_password_token: token,
+              password,
+              password_confirmation: passwordConfirmation,
+            },
+          }),
+        }),
+      googleAuth: async (token: string) =>
+        fetchAPI("/users/auth/google_oauth2/callback", {
+          method: "POST",
+          body: JSON.stringify({ token }),
+        }),
+      getDashboard: async () => fetchAPI("/users/dashboard"),
+      getSettings: async () => fetchAPI("/users/settings"),
+      updateSettings: async (settingsData: any) =>
+        fetchAPI("/users/settings", {
+          method: "PUT",
+          body: JSON.stringify({ settings: settingsData }),
+        }),
     },
-    logoutEmployee: async () => {
-      const response = await fetch(`${API_URL}/employees/sign_out`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          ...(localStorage.getItem("jwt_token")
-            ? { Authorization: `Bearer ${localStorage.getItem("jwt_token")}` }
-            : {}),
-        },
-      });
-      if (!response.ok) throw new Error("Logout failed");
+    client: {
+      login: async (email: string, password: string, rememberMe: boolean = false) =>
+        fetchAPI("/clients/sign_in", {
+          method: "POST",
+          body: JSON.stringify({ client: { email, password, rememberMe } }),
+        }),
+      register: async (clientData: any) =>
+        fetchAPI("/clients", {
+          method: "POST",
+          body: JSON.stringify({ client: clientData }),
+        }),
+      getCurrentClient: async () => fetchAPI("/clients/profile"),
+      updateProfile: async (clientData: any) =>
+        fetchAPI("/clients/profile", {
+          method: "PUT",
+          body: JSON.stringify({ client: clientData }),
+        }),
+      resetPassword: async (email: string) =>
+        fetchAPI("/clients/password", {
+          method: "POST",
+          body: JSON.stringify({ client: { email } }),
+        }),
+      updatePassword: async (token: string, password: string, passwordConfirmation: string) =>
+        fetchAPI("/clients/password", {
+          method: "PUT",
+          body: JSON.stringify({
+            client: {
+              reset_password_token: token,
+              password,
+              password_confirmation: passwordConfirmation,
+            },
+          }),
+        }),
+      getDashboard: async () => fetchAPI("/clients/dashboard"),
+      getSettings: async () => fetchAPI("/clients/settings"),
+      updateSettings: async (settingsData: any) =>
+        fetchAPI("/clients/settings", {
+          method: "PUT",
+          body: JSON.stringify({ settings: settingsData }),
+        }),
     },
-    requestPasswordResetUser: async (email: string) => {
-      const response = await fetch(`${API_URL}/users/password`, {
+    employee: {
+      login: async (email: string, password: string, rememberMe: boolean = false) =>
+        fetchAPI("/employees/sign_in", {
+          method: "POST",
+          body: JSON.stringify({ employee: { email, password, rememberMe } }),
+        }),
+      getCurrentEmployee: async () => fetchAPI("/employees/profile"),
+      updateProfile: async (employeeData: any) =>
+        fetchAPI("/employees/profile", {
+          method: "PUT",
+          body: JSON.stringify({ employee: employeeData }),
+        }),
+      checkAdminStatus: async () => fetchAPI("/employees/admin_signed_in"),
+      resetPassword: async (email: string) =>
+        fetchAPI("/employees/password", {
+          method: "POST",
+          body: JSON.stringify({ employee: { email } }),
+        }),
+      updatePassword: async (token: string, password: string, passwordConfirmation: string) =>
+        fetchAPI("/employees/password", {
+          method: "PUT",
+          body: JSON.stringify({
+            employee: {
+              reset_password_token: token,
+              password,
+              password_confirmation: passwordConfirmation,
+            },
+          }),
+        }),
+      getDashboard: async () => fetchAPI("/employees/dashboard"),
+      getSettings: async () => fetchAPI("/employees/settings"),
+      updateSettings: async (settingsData: any) =>
+        fetchAPI("/employees/settings", {
+          method: "PUT",
+          body: JSON.stringify({ settings: settingsData }),
+        }),
+    },
+    logout: async (userType = "user") => {
+      let endpoint = "/users/sign_out";
+      if (userType === "client") endpoint = "/clients/sign_out";
+      else if (userType === "employee") endpoint = "/employees/sign_out";
+      return fetchAPI(endpoint, { method: "DELETE" });
+    },
+  },
+
+  guests: {
+    register: async (name: string, email?: string) =>
+      fetchAPI("/guest/conversations", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ user: { email } }),
-      });
-      await handleErrorResponse(response);
-    },
-    requestPasswordResetEmployee: async (email: string) => {
-      const response = await fetch(`${API_URL}/employees/password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ employee: { email } }),
-      });
-      await handleErrorResponse(response);
-    },
-    resetPasswordUser: async (data: any) => {
-      const response = await fetch(`${API_URL}/users/password`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ user: data }),
-      });
-      await handleErrorResponse(response);
-    },
-    resetPasswordEmployee: async (data: any) => {
-      const response = await fetch(`${API_URL}/employees/password`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ employee: data }),
-      });
-      await handleErrorResponse(response);
-    },
+        body: JSON.stringify({ guest: { name, email } }),
+      }),
+    // getCurrentGuest: async () => fetchAPI("/guests/current"),
   },
 
-  user: {
-    updateProfileWithAvatar: async (formData: FormData) => {
-      const response = await fetch(`${API_URL}/users/profile`, {
-        method: "PUT",
-        headers: {
-          ...(localStorage.getItem("jwt_token")
-            ? { Authorization: `Bearer ${localStorage.getItem("jwt_token")}` }
-            : {}),
-        },
-        body: formData,
-      });
-      await handleErrorResponse(response);
+  blogs: {
+    getAll: async (params: Record<string, any> = {}, endpoint: string = "/blog/posts") => {
+      const queryParams = new URLSearchParams(params).toString();
+      return fetchAPI(`${endpoint}?${queryParams}`);
     },
-    updatePassword: async (data: any) => {
-      const response = await fetch(`${API_URL}/users/password`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          ...(localStorage.getItem("jwt_token")
-            ? { Authorization: `Bearer ${localStorage.getItem("jwt_token")}` }
-            : {}),
-        },
-        body: JSON.stringify({ user: data }),
-      });
-      await handleErrorResponse(response);
-    },
-  },
-
-  newsletter: {
-    subscribe: async (email: string) => {
-      const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscriber: { email } }),
-      });
-      await handleErrorResponse(response);
-    },
-  },
-
-  blog: {
-    getCategories: async () => {
-      const response = await fetch(`${API_URL}/blog/categories`, createRequestOptions());
-      await handleErrorResponse(response);
-      return response.json();
-    },
-    createPost: async (postData: any) => {
-      const response = await fetch(`${API_URL}/blog/posts`, 
-        createRequestOptions('POST', { post: postData }));
-      await handleErrorResponse(response);
-      return response.json();
-    },
-    getPost: async (slug: string) => {
-      const response = await fetch(`${API_URL}/blog/posts/${slug}`, createRequestOptions());
-      await handleErrorResponse(response);
-      return response.json();
-    },
-    updatePost: async (slug: string, postData: any) => {
-      const response = await fetch(`${API_URL}/blog/posts/${slug}`, 
-        createRequestOptions('PUT', { post: postData }));
-      await handleErrorResponse(response);
-    },
-  },
-
-  notifications: {
-    getNotifications: async () => {
-      const response = await fetch(`${API_URL}/notifications`, createRequestOptions());
-      await handleErrorResponse(response);
-      return response.json();
-    },
-    markAsRead: async (id: string) => {
-      const response = await fetch(`${API_URL}/notifications/${id}/read`, createRequestOptions('PUT'));
-      await handleErrorResponse(response);
-    },
-    markAllAsRead: async () => {
-      const response = await fetch(`${API_URL}/notifications/mark_all_read`, createRequestOptions('PUT'));
-      await handleErrorResponse(response);
-    },
+    getCategories: async () => fetchAPI("/blog/categories"),
+    getTags: async () => fetchAPI("/blog/tags"),
+    getBySlug: async (slug: string) => fetchAPI(`/blog/posts/${slug}`),
   },
 
   conversations: {
-    getConversations: async () => {
-      const response = await fetch(`${API_URL}/conversations`, createRequestOptions());
-      await handleErrorResponse(response);
-      return response.json();
-    },
+    getAll: async () => fetchAPI("/conversations"),
+    getById: async (id: string) => fetchAPI(`/conversations/${id}`),
+    create: async (recipientId: string, recipientType: string) =>
+      fetchAPI("/conversations", {
+        method: "POST",
+        body: JSON.stringify({
+          conversation: {
+            recipient_id: recipientId,
+            recipient_type: recipientType,
+          },
+        }),
+      }),
+    sendMessage: async (conversationId: string, content: string) =>
+      fetchAPI(`/conversations/${conversationId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ message: { content } }),
+      }),
+    markMessageAsRead: async (conversationId: string, messageId: string) =>
+      fetchAPI(`/conversations/${conversationId}/messages/${messageId}/read`, {
+        method: "PUT",
+      }),
+  },
 
-    getMessages: async (conversationId: string) => {
-      const response = await fetch(`${API_URL}/conversations/${conversationId}`, createRequestOptions());
-      await handleErrorResponse(response);
-      return response.json();
-    },
+  notifications: {
+    getAll: async () => fetchAPI("/notifications"),
+    markAsRead: async (id: string) =>
+      fetchAPI(`/notifications/${id}/read`, {
+        method: "PUT",
+      }),
+    markAllAsRead: async () =>
+      fetchAPI("/notifications/mark_all_read", {
+        method: "PUT",
+      }),
+  },
 
-    sendMessage: async (conversationId: string, content: string) => {
-      const response = await fetch(`${API_URL}/conversations/${conversationId}/messages`, 
-        createRequestOptions('POST', { content }));
-      await handleErrorResponse(response);
-      return response.json();
-    },
+  jobListings: {
+    getAll: async (page = 1) => fetchAPI(`/job_listings?page=${page}`),
+    getBySlug: async (slug: string) => fetchAPI(`/job_listings/${slug}`),
+    apply: async (slug: string, applicantData: any) =>
+      fetchAPI(`/job_listings/${slug}/apply`, {
+        method: "POST",
+        body: JSON.stringify({ applicant: applicantData }),
+      }),
+  },
 
-    markAsRead: async (conversationId: string, messageId: string) => {
-      const response = await fetch(`${API_URL}/conversations/${conversationId}/messages/${messageId}/read`, 
-        createRequestOptions('PUT'));
-      await handleErrorResponse(response);
-      return response.json();
-    },
+  appointments: {
+    getAll: async () => fetchAPI("/appointments"),
+    getById: async (id: string) => fetchAPI(`/appointments/${id}`),
+    create: async (appointmentData: any) =>
+      fetchAPI("/appointments", {
+        method: "POST",
+        body: JSON.stringify({ appointment: appointmentData }),
+      }),
+    update: async (id: string, appointmentData: any) =>
+      fetchAPI(`/appointments/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ appointment: appointmentData }),
+      }),
+    cancel: async (id: string) =>
+      fetchAPI(`/appointments/${id}`, {
+        method: "DELETE",
+      }),
+  },
 
-    getAvailableUsers: async () => {
-      const response = await fetch(`${API_URL}/contacts`, createRequestOptions());
-      await handleErrorResponse(response);
-      return response.json();
-    },
-
-    createConversation: async (partnerId: string) => {
-      // Determine whether to use user_id or employee_id based on the current route
-      const isAdmin = window.location.pathname.startsWith("/admin");
-      const bodyKey = isAdmin ? "user_id" : "employee_id";
-      
-      const response = await fetch(`${API_URL}/conversations`, 
-        createRequestOptions('POST', { [bodyKey]: partnerId }));
-      await handleErrorResponse(response);
-      return response.json();
-    },
+  newsletter: {
+    subscribe: async (email: string) =>
+      fetchAPI("/newsletter/subscribe", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
   },
 };
+
+export default api;

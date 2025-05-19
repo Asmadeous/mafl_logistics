@@ -1,137 +1,256 @@
 "use client"
+
+import { useState } from "react"
 import Link from "next/link"
-import { Facebook, Instagram, MapPin, Mail, Phone, Globe } from "lucide-react"
-// Make sure the import is correct
-import { urls } from "@/config/urls"
-import { NewsletterSignup } from "@/components/newsletter-signup"
+import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react"
+import { Logo } from "./logo"
+import { useTheme } from "next-themes"
+import { MapModal } from "./map-modal"
 
 export default function Footer() {
-  const openGoogleMaps = () => {
-    window.open(urls.contact.location, "_blank")
-  }
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false)
+  const { theme } = useTheme()
 
   return (
-    <footer className="bg-muted/50 dark:bg-muted/20 py-6">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 md:gap-4">
-          {/* Company Info & Social */}
-          <div className="flex flex-col md:w-1/3">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-mafl-orange">MAFL</span>
-              <span className="text-lg font-semibold">Logistics</span>
-            </Link>
-            <p className="text-sm text-muted-foreground mt-1">
-              Reliable logistics solutions across Kenya & East Africa.
-            </p>
-
-            <div className="flex items-center mt-3 space-x-3">
-              <span className="text-sm font-medium">Follow Us:</span>
-              <div className="flex space-x-2">
-                <a
-                  href={urls.social.facebook}
+    <>
+      <div className="w-full h-px bg-border dark:bg-border" />
+      <footer className="bg-background dark:bg-navy border-t border-border">
+        <div className="container mx-auto px-4 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <div className="flex flex-col items-center md:items-start">
+                <div className="flex items-center">
+                  <Logo width={50} height={50} />
+                  <span className="ml-3 text-lg font-bold text-foreground dark:text-white">
+                    MAFL <span className="text-orange-500 dark:text-orange-400">Logistics</span>
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-gray-400">
+                  Your Trusted Partner for Reliable, Efficient, Innovative Logistics Solutions
+                </p>
+              </div>
+              <div className="flex space-x-4 mt-3">
+                <Link
+                  href="https://www.facebook.com/Mafl2018"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-mafl-dark/10 dark:bg-white/10 hover:bg-mafl-orange hover:text-white transition-colors p-1.5 rounded-full"
-                  aria-label="Facebook"
+                  className="text-foreground dark:text-white hover:text-orange-500 transition-colors"
                 >
-                  <Facebook className="h-4 w-4" />
-                </a>
-                <a
-                  href={urls.social.instagram}
+                  <Facebook size={18} />
+                  <span className="sr-only">Facebook</span>
+                </Link>
+                <Link
+                  href="https://www.instagram.com/mafl_logistics_ke_ltd/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-mafl-dark/10 dark:bg-white/10 hover:bg-mafl-orange hover:text-white transition-colors p-1.5 rounded-full"
-                  aria-label="Instagram"
+                  className="text-foreground dark:text-white hover:text-orange-500 transition-colors"
                 >
-                  <Instagram className="h-4 w-4" />
-                </a>
-                <a
-                  href={urls.contact.whatsapp}
+                  <Instagram size={18} />
+                  <span className="sr-only">Instagram</span>
+                </Link>
+                <Link
+                  href="https://api.whatsapp.com/send?phone=%2B254779403242"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-mafl-dark/10 dark:bg-white/10 hover:bg-mafl-orange hover:text-white transition-colors p-1.5 rounded-full"
-                  aria-label="WhatsApp Primary"
+                  className="text-foreground dark:text-white hover:text-orange-500 transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
+                    width="18"
+                    height="18"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4"
                   >
                     <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />
                     <path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1Z" />
                     <path d="M14 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1Z" />
-                    <path d="M9.5 13.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 0-1h-4a.5.5 0 0 0-.5.5Z" />
+                    <path d="M9.5 13.5c.5 1.5 2.5 2 4 1" />
                   </svg>
-                </a>
+                  <span className="sr-only">WhatsApp</span>
+                </Link>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">Quick Links</h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    href="/"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/about"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/services"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Services
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/blogs"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Blogs
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/careers"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Careers
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">Services</h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    href="/services"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Cross-Border Logistics
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/services"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Project Cargo Transport
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/services"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Heavy Machinery Hire
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/services"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Road Construction
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/services"
+                    className="text-xs text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    Bulk Cargo Transport
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">Contact Us</h3>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <button
+                    onClick={() => setIsMapModalOpen(true)}
+                    className="flex items-start text-left text-foreground dark:text-white hover:text-orange-500 transition-colors focus:outline-none"
+                  >
+                    <MapPin size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs">Malili, Konza, Rift Valley, Kenya</span>
+                  </button>
+                </li>
+                <li className="flex items-center">
+                  <a
+                    href="tel:+254711111017"
+                    className="flex items-center text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    <Phone size={16} className="mr-2 flex-shrink-0" />
+                    <span className="text-xs">+254 711 111 017</span>
+                  </a>
+                </li>
+                <li className="flex items-center">
+                  <a
+                    href="mailto:info@mafllogistics.com"
+                    className="flex items-center text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    <Mail size={16} className="mr-2 flex-shrink-0" />
+                    <span className="text-xs">info@mafllogistics.com</span>
+                  </a>
+                </li>
+                <li className="flex items-center">
+                  <a
+                    href="https://www.mafllogistics.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-foreground dark:text-white hover:text-orange-500 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-2 flex-shrink-0"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="2" y1="12" x2="22" y2="12" />
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                    <span className="text-xs">www.mafllogistics.com</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-border mt-4 pt-4">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p className="text-xs text-muted-foreground dark:text-gray-400">
+                © {new Date().getFullYear()}{" "}
+                <span className="font-semibold text-orange-500 dark:text-orange-400">
+                  MAISHA AGROFARM LIMITED LOGISTICS
+                </span>
+                . All rights reserved.
+              </p>
+              <div className="flex space-x-4 mt-2 md:mt-0">
+                <Link
+                  href="/privacy-policy"
+                  className="text-xs text-muted-foreground dark:text-gray-400 hover:text-orange-500 transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  href="/terms-of-service"
+                  className="text-xs text-muted-foreground dark:text-gray-400 hover:text-orange-500 transition-colors"
+                >
+                  Terms of Service
+                </Link>
               </div>
             </div>
           </div>
-
-          {/* Divider for mobile */}
-          <div className="block md:hidden w-full h-px bg-border/50"></div>
-
-          {/* Contact Info */}
-          <div className="md:w-1/3 md:border-x border-border/50 md:px-6">
-            <h3 className="text-base font-medium mb-2">Contact</h3>
-            <div className="space-y-2">
-              <button
-                onClick={openGoogleMaps}
-                className="flex items-center text-left text-muted-foreground hover:text-mafl-orange transition-colors"
-              >
-                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="text-sm">Malili, Konza, Kenya</span>
-              </button>
-              <a
-                href={`tel:${urls.contact.phone}`}
-                className="flex items-center text-muted-foreground hover:text-mafl-orange transition-colors"
-              >
-                <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="text-sm">{urls.contact.phone}</span>
-              </a>
-              <a
-                href={`mailto:${urls.contact.email}`}
-                className="flex items-center text-muted-foreground hover:text-mafl-orange transition-colors"
-              >
-                <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="text-sm">{urls.contact.email}</span>
-              </a>
-              <a
-                href={urls.contact.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center text-muted-foreground hover:text-mafl-orange transition-colors"
-              >
-                <Globe className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="text-sm">www.mafllogistics.com</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Divider for mobile */}
-          <div className="block md:hidden w-full h-px bg-border/50"></div>
-
-          {/* Newsletter */}
-          <div className="md:w-1/3">
-            <h3 className="text-base font-medium mb-2">Newsletter</h3>
-            <p className="text-sm text-muted-foreground mb-2">Subscribe for updates on our services.</p>
-            <NewsletterSignup />
-          </div>
         </div>
-
-        {/* Horizontal divider */}
-        <div className="w-full h-px bg-border/50 my-4"></div>
-
-        <div className="text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} MAFL Logistics. All rights reserved.
-        </div>
-      </div>
-    </footer>
+      </footer>
+      <MapModal isOpen={isMapModalOpen} onClose={() => setIsMapModalOpen(false)} />
+    </>
   )
 }

@@ -2,13 +2,24 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import ClientLayout from "./client-layout"
+import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/components/auth-provider"
+import { SupportChatProvider } from "@/components/support-chat-context"
+import { CookiesDisclaimer } from "@/components/cookies-disclaimer"
+import { SupportChatPopup } from "@/components/support-chat-popup"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "MAFL Logistics - Your Trusted Logistics Partner",
-  description: "Reliable, Efficient, Innovative Logistics Solutions Across Kenya & East Africa",
+  title: "MAFL Logistics",
+  description: "Modern African Logistics Solutions",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/logo-white.png", media: "(prefers-color-scheme: dark)" },
+      { url: "/logo.jpeg", media: "(prefers-color-scheme: light)" },
+    ],
+  },
   generator: "v0.dev",
 }
 
@@ -19,36 +30,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
       <body className={inter.className}>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var storageKey = 'theme';
-                  var prefersDarkQuery = '(prefers-color-scheme: dark)';
-                  var mql = window.matchMedia(prefersDarkQuery);
-                  var prefersDarkFromMQ = mql.matches;
-                  var persistedPreference = localStorage.getItem(storageKey);
-                  
-                  var colorMode = persistedPreference
-                    ? persistedPreference
-                    : prefersDarkFromMQ
-                    ? 'dark'
-                    : 'light';
-                  
-                  var root = document.documentElement;
-                  root.classList.remove('light', 'dark');
-                  root.classList.add(colorMode);
-                } catch (e) {
-                  console.error(e);
-                }
-              })();
-            `,
-          }}
-        />
-        <ClientLayout>{children}</ClientLayout>
+        <AuthProvider>
+          <SupportChatProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+              {children}
+              <CookiesDisclaimer />
+              <SupportChatPopup />
+            </ThemeProvider>
+          </SupportChatProvider>
+        </AuthProvider>
       </body>
     </html>
   )

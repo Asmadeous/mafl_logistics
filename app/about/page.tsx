@@ -1,248 +1,126 @@
 "use client"
 
-import type React from "react"
-
+import { useRef } from "react"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
 import Image from "next/image"
-import { motion } from "framer-motion"
-import {
-  Calendar,
-  Award,
-  Target,
-  Users,
-  TrendingUp,
-  CheckCircle,
-  Star,
-  Clock,
-  Flag,
-  BarChart,
-  ShieldIcon,
-  Lightbulb,
-} from "lucide-react"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { motion, useInView } from "framer-motion"
+import { Flag, Globe, Lightbulb, Building, Clock, CheckCircle, Shield } from "lucide-react"
+import PageBanner from "@/components/page-banner"
+import { useTheme } from "next-themes"
+import FAQSection from "@/components/faq-section"
 
 export default function AboutPage() {
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  }
+  const valuesRef = useRef(null)
+  const journeyRef = useRef(null)
+  const teamRef = useRef(null)
+  const ceoRef = useRef(null)
+  const { resolvedTheme } = useTheme()
+  const isDarkMode = resolvedTheme === "dark"
 
-  const stats = [
-    { label: "Years of Experience", value: "3+", icon: <Calendar className="h-6 w-6 text-mafl-orange" /> },
-    { label: "Countries Served", value: "5+", icon: <Globe className="h-6 w-6 text-mafl-orange" /> },
-    { label: "Satisfied Clients", value: "100+", icon: <Users className="h-6 w-6 text-mafl-orange" /> },
-    { label: "Successful Deliveries", value: "1000+", icon: <TrendingUp className="h-6 w-6 text-mafl-orange" /> },
-  ]
+  const valuesInView = useInView(valuesRef, { once: true, amount: 0.2 })
+  const journeyInView = useInView(journeyRef, { once: true, amount: 0.2 })
+  const teamInView = useInView(teamRef, { once: true, amount: 0.2 })
+  const ceoInView = useInView(ceoRef, { once: true, amount: 0.2 })
 
-  const values = [
-    { title: "Integrity", description: "We conduct our business with honesty, transparency, and ethical standards." },
-    { title: "Reliability", description: "We deliver on our promises, ensuring timely and consistent service." },
-    { title: "Excellence", description: "We strive for the highest standards in all aspects of our operations." },
-    { title: "Innovation", description: "We embrace new technologies and methods to improve our services." },
+  // For example:
+  const faqs = [
     {
-      title: "Customer Focus",
-      description: "We prioritize our customers' needs and satisfaction in everything we do.",
-    },
-    { title: "Safety", description: "We maintain the highest safety standards for our team, cargo, and environment." },
-  ]
-
-  const milestones = [
-    {
-      year: "2021",
-      title: "Humble Beginnings",
-      description:
-        "Founded in 2021, MAFL Logistics started with local freight operations, focusing on delivering reliable & efficient logistics solutions across Kenya.",
-      icon: <Flag className="h-6 w-6 text-white" />,
+      question: "What areas does MAFL Logistics operate in?",
+      answer:
+        "MAFL Logistics operates throughout Kenya and East Africa, with a focus on major transport corridors and cross-border routes.",
     },
     {
-      year: "2022",
-      title: "Expanding Horizons",
-      description:
-        "Through investment in technology & strong partnerships, we expanded into regional & cross-border logistics, serving Kenya, Rwanda, & Ethiopia.",
-      icon: <Globe className="h-6 w-6 text-white" />,
+      question: "What types of cargo does MAFL transport?",
+      answer:
+        "We specialize in bulk cargo, oversized equipment, construction materials, and general freight across various industries.",
     },
     {
-      year: "2023",
-      title: "Innovation & Excellence",
-      description:
-        "MAFL Logistics continues to grow by specializing in heavy machinery transport, warehousing, & bulk cargo handling while innovating to meet future logistics needs.",
-      icon: <Lightbulb className="h-6 w-6 text-white" />,
-    },
-  ]
-
-  const achievements = [
-    {
-      title: "Makueni County Road Contracts",
-      year: "2022",
-      description: "Successfully completed material transport and grading services for Makueni County road projects.",
-      icon: <Award className="h-10 w-10 text-mafl-orange" />,
+      question: "How does MAFL ensure cargo safety?",
+      answer:
+        "We implement rigorous safety protocols, use modern tracking technology, and employ experienced drivers trained in cargo security.",
     },
     {
-      title: "Amboseli National Park Roads",
-      year: "2021",
-      description: "Provided road grading and maintenance services to improve accessibility in Amboseli National Park.",
-      icon: <ShieldIcon className="h-10 w-10 text-mafl-orange" />,
+      question: "Does MAFL handle customs clearance for cross-border shipments?",
+      answer:
+        "Yes, we provide comprehensive customs clearance services to ensure smooth cross-border operations for our clients.",
     },
     {
-      title: "Cross-Border Logistics Excellence",
-      year: "2023",
-      description: "Established seamless freight services to Kenya, Rwanda, Ethiopia, Uganda, and Tanzania.",
-      icon: <Star className="h-10 w-10 text-mafl-orange" />,
-    },
-  ]
-
-  const highlights = [
-    {
-      title: "Tech-Driven Efficiency",
-      description: "Advanced tracking systems ensuring seamless deliveries across East Africa.",
-      icon: <Clock className="h-8 w-8 text-mafl-orange" />,
-    },
-    {
-      title: "Customer Focus",
-      description: "Tailored logistics solutions creating lasting partnerships with clients.",
-      icon: <ShieldIcon className="h-8 w-8 text-mafl-orange" />,
-    },
-    {
-      title: "Regional & Cross-Border Reach",
-      description: "Extensive network covering Kenya and neighboring East African countries.",
-      icon: <Lightbulb className="h-8 w-8 text-mafl-orange" />,
-    },
-    {
-      title: "Diverse Logistics Services",
-      description: "Comprehensive solutions from heavy machinery transport to road construction.",
-      icon: <BarChart className="h-8 w-8 text-mafl-orange" />,
+      question: "What makes MAFL different from other logistics providers?",
+      answer:
+        "Our deep local knowledge, dedicated customer service, modern fleet, and commitment to reliability set us apart in the East African logistics market.",
     },
   ]
 
   return (
-    <div className="pt-24 pb-16">
-      {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-gray-50 dark:from-mafl-dark/80 dark:to-mafl-dark/30">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">About MAFL Logistics</h1>
-            <div className="flex items-center justify-center mb-6">
-              <div className="h-1 w-20 bg-mafl-orange rounded-full"></div>
-            </div>
-            <p className="text-xl text-muted-foreground">
-              Your Trusted Partner for Reliable, Efficient, Innovative Logistics Solutions Across Kenya & East Africa.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
 
-      {/* Company Overview */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      {/* Hero Section */}
+      <PageBanner
+        title="About MAFL Logistics"
+        subtitle="Your Trusted Partner for Reliable, Efficient, Innovative Logistics Solutions Across Kenya & East Africa."
+        backgroundImage="/kenyan-logistics-team.jpg"
+        imageAlt="About MAFL Logistics"
+      />
+
+      {/* About Company - Enhanced styling */}
+      <section className="py-20 bg-white dark:bg-navy">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid gap-12 md:grid-cols-2 items-center">
             <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-              transition={{ duration: 0.5 }}
-              className="relative h-[400px] rounded-lg overflow-hidden shadow-lg"
+              className="relative h-[450px] rounded-2xl overflow-hidden shadow-xl"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <Image
-                src="/images/about-company.jpg"
-                alt="MAFL Logistics - Kenyan Logistics Company"
-                fill
-                className="object-cover"
-              />
+              <Image src="/kenyan-logistics-team.jpg" alt="About MAFL Logistics" fill className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 right-0 p-6">
+                <span className="inline-block px-4 py-1.5 bg-primary text-navy rounded-full text-sm font-medium mb-2">
+                  Est. 2021
+                </span>
+              </div>
             </motion.div>
             <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-col justify-center space-y-6"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <h2 className="text-3xl font-bold mb-4">Our Story</h2>
-              <div className="h-1 w-12 bg-mafl-orange rounded-full mb-6"></div>
-              <p className="text-lg mb-4">
+              <div>
+                <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+                  Our Story
+                </span>
+                <h2 className="text-4xl font-bold tracking-tight mb-6 text-navy dark:text-white">About Our Company</h2>
+              </div>
+              <p className="text-lg text-navy dark:text-gray-300 leading-relaxed">
                 MAFL Logistics specializes in providing efficient & reliable transportation solutions across Kenya.
                 Founded by Mahdi M. Issack, we focus on heavy machinery transport, warehousing & storage, containerized
                 & bulk cargo, & hauling services.
               </p>
-              <p className="text-lg mb-6">
+              <p className="text-lg text-navy dark:text-gray-300 leading-relaxed">
                 With a dedicated fleet, we ensure safe, timely, & hassle-free deliveries for industrial equipment,
-                construction materials, & bulk shipments.
+                construction materials, & bulk shipments. Our commitment to excellence has made us a trusted partner for
+                businesses across East Africa.
               </p>
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-mafl-orange mr-2" />
-                <span>Delivering Efficiency & Reliability Across East Africa</span>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* CEO Statement */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-              transition={{ duration: 0.5 }}
-              className="md:col-span-4 flex justify-center"
-            >
-              <div className="relative h-[300px] w-[300px] rounded-full overflow-hidden border-4 border-mafl-orange shadow-xl">
-                <Image
-                  src="/placeholder.svg?height=300&width=300"
-                  alt="Mahdi M. Issack - CEO of MAFL Logistics"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="md:col-span-8"
-            >
-              <div className="bg-white dark:bg-mafl-dark/30 p-8 rounded-lg shadow-lg relative">
-                <div className="absolute top-4 left-4 text-mafl-orange opacity-20">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="64"
-                    height="64"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    stroke="none"
-                  >
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                  </svg>
+              <div className="grid grid-cols-2 gap-6 mt-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-navy dark:text-white">Reliable</h4>
+                    <p className="text-sm text-navy/70 dark:text-gray-400">Consistent service</p>
+                  </div>
                 </div>
-                <div className="relative z-10">
-                  <h2 className="text-3xl font-bold mb-6">A Message From Our CEO</h2>
-                  <p className="text-lg italic mb-6">
-                    "At MAFL Logistics, we go beyond moving goods, we deliver trust, precision, & value. Committed to
-                    timely & secure deliveries, we continue to invest in technology, expand our fleet, & build strong
-                    partnerships. From heavy machinery transport to warehousing & bulk cargo handling, we are your
-                    reliable logistics partner."
-                  </p>
-                  <p className="text-lg italic mb-6">
-                    "Delivering Excellence: How MAFL Logistics is Redefining Transportation Across Kenya."
-                  </p>
-                  <div className="flex items-center">
-                    <div>
-                      <h4 className="text-xl font-bold">Mahdi M. Issack</h4>
-                      <p className="text-mafl-orange">Founder & CEO, MAFL Logistics</p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-navy dark:text-white">Secure</h4>
+                    <p className="text-sm text-navy/70 dark:text-gray-400">Safe transport</p>
                   </div>
                 </div>
               </div>
@@ -251,504 +129,338 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Milestones Timeline */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
-        <div className="container mx-auto px-4">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold mb-4 text-center"
+      {/* Our Journey Timeline - Enhanced styling with mobile responsiveness */}
+      <section ref={journeyRef} className="py-20 bg-gray-50 dark:bg-navy/80">
+        <div className="container mx-auto px-4 md:px-6">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={journeyInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
           >
-            Our Journey
-          </motion.h2>
-          <div className="flex items-center justify-center mb-12">
-            <div className="h-1 w-16 bg-mafl-orange rounded-full"></div>
-          </div>
+            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+              Our History
+            </span>
+            <h2 className="text-4xl font-bold mb-4 text-navy dark:text-white">Our Journey</h2>
+            <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
+            <p className="max-w-3xl mx-auto text-lg text-navy/80 dark:text-gray-300">
+              From humble beginnings to becoming a leading logistics provider in East Africa
+            </p>
+          </motion.div>
 
           <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-mafl-orange/30"></div>
+            {/* Timeline line - hidden on mobile, visible on md screens and up */}
+            <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-primary/30"></div>
 
-            <div className="space-y-12">
-              {milestones.map((milestone, index) => (
-                <motion.div
-                  key={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeIn}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`relative flex items-center ${index % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}
-                >
-                  {/* Timeline dot */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-mafl-orange flex items-center justify-center z-10">
-                    {milestone.icon}
+            {/* 2021 */}
+            <motion.div
+              className="relative mb-16 md:mb-32"
+              initial={{ opacity: 0, y: 30 }}
+              animate={journeyInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              {/* Year icon - centered on mobile, positioned on timeline for desktop */}
+              <div className="flex justify-center md:block md:absolute md:left-1/2 md:transform md:-translate-x-1/2 md:-top-6 mb-6 md:mb-0">
+                <div className="bg-primary text-navy font-bold text-xl rounded-full h-16 w-16 flex items-center justify-center shadow-lg">
+                  <Flag className="h-6 w-6" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div className="md:text-right md:pr-12">
+                  <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-3">
+                    2021
+                  </span>
+                  <h3 className="text-2xl font-bold mb-4 text-navy dark:text-white">Humble Beginnings</h3>
+                  <p className="text-navy dark:text-white leading-relaxed">
+                    Founded in 2021, MAFL Logistics started with local freight operations, focusing on delivering
+                    reliable & efficient logistics solutions across Kenya. The early days were marked by determination
+                    and a commitment to excellence, laying the foundation for what would become one of the region's most
+                    trusted logistics providers.
+                  </p>
+                </div>
+                <div className="block">
+                  <div className="relative h-[250px] w-full max-w-[400px] mx-auto rounded-xl overflow-hidden shadow-lg">
+                    <Image
+                      src="/logistics-team-planning.jpg"
+                      alt="MAFL Logistics Foundation"
+                      fill
+                      className="object-cover"
+                    />
                   </div>
+                </div>
+              </div>
+            </motion.div>
 
-                  {/* Content */}
-                  <div className={`w-5/12 ${index % 2 === 0 ? "text-right pr-8" : "pl-8"}`}>
-                    <div className="bg-white dark:bg-mafl-dark/70 p-6 rounded-lg shadow-md">
-                      <div className="text-mafl-orange font-bold text-xl mb-2">{milestone.year}</div>
-                      <h3 className="text-xl font-semibold mb-2">{milestone.title}</h3>
-                      <p className="text-muted-foreground">{milestone.description}</p>
-                    </div>
+            {/* 2022 */}
+            <motion.div
+              className="relative mb-16 md:mb-32"
+              initial={{ opacity: 0, y: 30 }}
+              animate={journeyInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              {/* Year icon - centered on mobile, positioned on timeline for desktop */}
+              <div className="flex justify-center md:block md:absolute md:left-1/2 md:transform md:-translate-x-1/2 md:-top-6 mb-6 md:mb-0">
+                <div className="bg-primary text-navy font-bold text-xl rounded-full h-16 w-16 flex items-center justify-center shadow-lg">
+                  <Globe className="h-6 w-6" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div className="block md:order-1 order-2">
+                  <div className="relative h-[250px] w-full max-w-[400px] mx-auto rounded-xl overflow-hidden shadow-lg">
+                    <Image
+                      src="/mafl-truck.jpeg"
+                      alt="MAFL Logistics Growth"
+                      fill
+                      className="object-cover"
+                    />
                   </div>
+                </div>
+                <div className="md:text-left md:pl-12 md:order-2 order-1">
+                  <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-3">
+                    2022
+                  </span>
+                  <h3 className="text-2xl font-bold mb-4 text-navy dark:text-white">Expanding Horizons</h3>
+                  <p className="text-navy dark:text-white leading-relaxed">
+                    Through investment in technology & strong partnerships, we expanded into regional & cross-border
+                    logistics, serving Kenya, Rwanda, & Ethiopia. This period marked significant growth in our fleet
+                    size and service capabilities, establishing key partnerships with major clients and government
+                    entities.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
 
-                  {/* Empty space for the other side */}
-                  <div className="w-5/12"></div>
-                </motion.div>
-              ))}
-            </div>
+            {/* 2023 */}
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, y: 30 }}
+              animate={journeyInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              {/* Year icon - centered on mobile, positioned on timeline for desktop */}
+              <div className="flex justify-center md:block md:absolute md:left-1/2 md:transform md:-translate-x-1/2 md:-top-6 mb-6 md:mb-0">
+                <div className="bg-primary text-navy font-bold text-xl rounded-full h-16 w-16 flex items-center justify-center shadow-lg">
+                  <Lightbulb className="h-6 w-6" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div className="md:text-right md:pr-12">
+                  <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-3">
+                    2023
+                  </span>
+                  <h3 className="text-2xl font-bold mb-4 text-navy dark:text-white">Innovation & Excellence</h3>
+                  <p className="text-navy dark:text-white leading-relaxed">
+                    MAFL Logistics continues to grow by specializing in heavy machinery transport, warehousing, & bulk
+                    cargo handling while innovating to meet future logistics needs. Today, we're recognized as a leader
+                    in specialized logistics solutions across East Africa, with a reputation for reliability, safety,
+                    and customer satisfaction.
+                  </p>
+                </div>
+                <div className="block">
+                  <div className="relative h-[250px] w-full max-w-[400px] mx-auto rounded-xl overflow-hidden shadow-lg">
+                    <Image
+                      src="/fleet.jpg"
+                      alt="MAFL Logistics Present Day"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Key Achievements */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
-        <div className="container mx-auto px-4">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold mb-4 text-center"
+      {/* Our Values - Enhanced styling */}
+      <section ref={valuesRef} className="py-20 bg-white dark:bg-navy text-navy dark:text-white">
+        <div className="container mx-auto px-4 md:px-6">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={valuesInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
           >
-            Key Achievements
-          </motion.h2>
-          <div className="flex items-center justify-center mb-12">
-            <div className="h-1 w-16 bg-mafl-orange rounded-full"></div>
-          </div>
+            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+              What Drives Us
+            </span>
+            <h2 className="text-4xl font-bold mb-4 text-navy dark:text-white">Our Values</h2>
+            <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
+            <p className="max-w-3xl mx-auto text-lg text-navy/80 dark:text-gray-300">
+              We prioritize integrity, professionalism, & customer-focused service in every delivery
+            </p>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {achievements.map((achievement, index) => (
+            {[
+              {
+                title: "Integrity",
+                icon: <CheckCircle className="h-10 w-10 text-primary mb-4" />,
+                description: "We conduct our business with honesty, transparency, and ethical standards.",
+              },
+              {
+                title: "Reliability",
+                icon: <Clock className="h-10 w-10 text-primary mb-4" />,
+                description: "We deliver on our promises, ensuring timely and consistent service.",
+              },
+              {
+                title: "Excellence",
+                icon: <Building className="h-10 w-10 text-primary mb-4" />,
+                description: "We strive for the highest standards in all aspects of our operations.",
+              },
+              {
+                title: "Innovation",
+                icon: <Lightbulb className="h-10 w-10 text-primary mb-4" />,
+                description: "We embrace new technologies and methods to improve our services.",
+              },
+              {
+                title: "Customer Focus",
+                icon: <Globe className="h-10 w-10 text-primary mb-4" />,
+                description: "We prioritize our customers' needs and satisfaction in everything we do.",
+              },
+              {
+                title: "Safety",
+                icon: <Shield className="h-10 w-10 text-primary mb-4" />,
+                description: "We maintain the highest safety standards for our team, cargo, and environment.",
+              },
+            ].map((value, index) => (
               <motion.div
-                key={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeIn}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-gray-50 dark:bg-mafl-dark/50 rounded-xl overflow-hidden"
+                key={value.title}
+                className="bg-gray-50 dark:bg-navy/50 p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/30 transition-all flex flex-col items-center text-center"
+                initial={{ opacity: 0, y: 30 }}
+                animate={valuesInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.1 * index }}
               >
-                <div className="p-8">
-                  <div className="mb-4">{achievement.icon}</div>
-                  <h3 className="text-xl font-bold mb-2">{achievement.title}</h3>
-                  <div className="text-mafl-orange font-medium mb-3">{achievement.year}</div>
-                  <p className="text-muted-foreground">{achievement.description}</p>
+                <div className="bg-primary/10 p-4 rounded-full mb-2">{value.icon}</div>
+                <h3 className="text-2xl font-bold mb-4 text-navy dark:text-white">{value.title}</h3>
+                <p className="text-navy/80 dark:text-gray-300 leading-relaxed">{value.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CEO Statement - Enhanced styling */}
+      <section ref={ceoRef} className="py-20 bg-gray-50 dark:bg-navy/90">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid gap-12 md:grid-cols-2 items-center">
+            <motion.div
+              className="flex flex-col justify-center space-y-6 order-2 md:order-1"
+              initial={{ opacity: 0, x: -50 }}
+              animate={ceoInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.6 }}
+            >
+              <div>
+                <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+                  Leadership
+                </span>
+                <h2 className="text-4xl font-bold mb-6 text-navy dark:text-white">CEO Statement</h2>
+              </div>
+              <div className="bg-white dark:bg-navy/50 p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <p className="text-xl text-navy dark:text-gray-300 italic leading-relaxed mb-6">
+                  "At MAFL Logistics, we go beyond moving goods, we deliver trust, precision, & value. Committed to
+                  timely & secure deliveries, we continue to invest in technology, expand our fleet, & build strong
+                  partnerships. From heavy machinery transport to warehousing & bulk cargo handling, we are your
+                  reliable logistics partner."
+                </p>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
+                    <Image src="/ceo-mahdi-issack.jpg" alt="CEO" width={48} height={48} className="object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-navy dark:text-white font-bold">Mahdi M. Issack</p>
+                    <p className="text-navy/70 dark:text-gray-400 text-sm">CEO & Founder</p>
+                  </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
-        <div className="container mx-auto px-4">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold mb-4 text-center"
-          >
-            Our Impact
-          </motion.h2>
-          <div className="flex items-center justify-center mb-12">
-            <div className="h-1 w-16 bg-mafl-orange rounded-full"></div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeIn}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <Card className="text-center h-full">
-                  <CardHeader className="pb-2">
-                    <div className="mx-auto mb-2">{stat.icon}</div>
-                    <CardTitle className="text-4xl font-bold">{stat.value}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{stat.label}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Company Highlights */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
-        <div className="container mx-auto px-4">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold mb-4 text-center"
-          >
-            Company Highlights
-          </motion.h2>
-          <div className="flex items-center justify-center mb-12">
-            <div className="h-1 w-16 bg-mafl-orange rounded-full"></div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {highlights.map((highlight, index) => (
-              <motion.div
-                key={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeIn}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <Card className="h-full border-t-4 border-mafl-orange">
-                  <CardHeader>
-                    <div className="mb-2">{highlight.icon}</div>
-                    <CardTitle>{highlight.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{highlight.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Mission & Vision */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-              transition={{ duration: 0.5 }}
-              className="bg-mafl-orange text-white p-8 rounded-xl"
-            >
-              <div className="mb-4">
-                <Target className="h-10 w-10" />
               </div>
-              <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
-              <p className="text-lg mb-4">
-                To offer seamless, secure, & cost-effective logistics solutions that help businesses grow while ensuring
-                timely & safe delivery of goods.
-              </p>
-              <p className="text-lg">
-                Delivering reliable, efficient, & innovative logistics solutions while building lasting partnerships.
-              </p>
             </motion.div>
-
             <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-mafl-dark text-white p-8 rounded-xl"
+              className="relative h-[400px] order-1 md:order-2 rounded-xl overflow-hidden shadow-xl"
+              initial={{ opacity: 0, x: 50 }}
+              animate={ceoInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.6 }}
             >
-              <div className="mb-4">
-                <Award className="h-10 w-10 text-mafl-orange" />
-              </div>
-              <h2 className="text-3xl font-bold mb-6">Our Vision</h2>
-              <p className="text-lg mb-4">
-                To be East Africa's leading logistics provider through innovation, service excellence, & regional
-                expansion.
-              </p>
-              <p className="text-lg">
-                To become Kenya's leading logistics provider, setting new standards in efficiency, innovation, &
-                customer satisfaction.
-              </p>
+              <Image src="/ceo-mahdi-issack.jpg" alt="Mahdi M. Issack, CEO" fill className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Company History Tabs */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
-        <div className="container mx-auto px-4">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold mb-4 text-center"
-          >
-            Our History
-          </motion.h2>
-          <div className="flex items-center justify-center mb-12">
-            <div className="h-1 w-16 bg-mafl-orange rounded-full"></div>
-          </div>
-
-          <Tabs defaultValue="foundation" className="w-full max-w-4xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="foundation">Foundation</TabsTrigger>
-              <TabsTrigger value="growth">Growth</TabsTrigger>
-              <TabsTrigger value="present">Present Day</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="foundation" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div className="relative h-[300px] rounded-lg overflow-hidden shadow-lg">
-                  <Image
-                    src="/images/history-foundation.jpg"
-                    alt="MAFL Logistics Foundation - Kenyan Logistics Company"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">The Beginning (2021)</h3>
-                  <p className="text-muted-foreground mb-4">
-                    MAFL Logistics was founded in 2021 by Mahdi M. Issack with a vision to address the logistics
-                    challenges in Kenya and East Africa. Starting with local freight operations, the company focused on
-                    providing reliable transportation for construction materials and equipment.
-                  </p>
-                  <p className="text-muted-foreground">
-                    The early days were marked by determination and a commitment to excellence, laying the foundation
-                    for what would become one of the region's most trusted logistics providers.
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="growth" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Expanding Horizons (2022)</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Through investment in technology and strong partnerships, we expanded into regional and cross-border
-                    logistics, serving Kenya, Rwanda, and Ethiopia. This period marked significant growth for MAFL
-                    Logistics.
-                  </p>
-                  <p className="text-muted-foreground">
-                    During this period, we also established our warehousing division, providing comprehensive logistics
-                    solutions that went beyond transportation. Our client base grew steadily as our reputation for
-                    reliability and excellence spread throughout the region.
-                  </p>
-                </div>
-                <div className="relative h-[300px] rounded-lg overflow-hidden shadow-lg">
-                  <Image
-                    src="/images/history-growth.jpg"
-                    alt="MAFL Logistics Growth - Kenyan Logistics Company"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="present" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div className="relative h-[300px] rounded-lg overflow-hidden shadow-lg">
-                  <Image
-                    src="/images/history-present.jpg"
-                    alt="MAFL Logistics Today - Kenyan Logistics Company"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Innovation & Excellence (2023-Present)</h3>
-                  <p className="text-muted-foreground mb-4">
-                    MAFL Logistics continues to grow by specializing in heavy machinery transport, warehousing, and bulk
-                    cargo handling while innovating to meet future logistics needs. With a modern fleet,
-                    state-of-the-art tracking systems, and a team of experienced professionals, we continue to set new
-                    standards in the industry.
-                  </p>
-                  <p className="text-muted-foreground">
-                    We've embraced digital transformation to enhance our operations and customer experience, while
-                    maintaining our core values of reliability, integrity, and excellence. As we look to the future, we
-                    remain committed to innovation and expansion, always with our customers' needs at the center of
-                    everything we do.
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-
-      {/* Company Values */}
-      <section className="py-16 bg-white dark:bg-mafl-dark/30">
-        <div className="container mx-auto px-4">
+      {/* Team - Enhanced styling */}
+      <section ref={teamRef} className="py-20 bg-white dark:bg-navy">
+        <div className="container mx-auto px-4 md:px-6">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={teamInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl font-bold mb-4">Our Values</h2>
-            <div className="flex items-center justify-center mb-6">
-              <div className="h-1 w-16 bg-mafl-orange rounded-full"></div>
-            </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We prioritize integrity, professionalism, & customer-focused service in every delivery.
+            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+              Our People
+            </span>
+            <h2 className="text-4xl font-bold mb-4 text-navy dark:text-white">Meet Our Team</h2>
+            <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
+            <p className="max-w-3xl mx-auto text-lg text-navy/80 dark:text-gray-300">
+              The dedicated professionals behind MAFL Logistics' success
             </p>
           </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {values.map((value, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {[
+              { name: "Mahdi M. Issack", role: "CEO & Founder", image: "/ceo-mahdi-issack.jpg" },
+              { name: "Sarah Kimani", role: "Operations Manager", image: "/focused-logistics-professional.png" },
+              { name: "David Ochieng", role: "Logistics Coordinator", image: "/head-of-operations.jpg" },
+              { name: "James Mwangi", role: "Fleet Manager", image: "/confident-fleet-manager.png" },
+            ].map((member, index) => (
               <motion.div
-                key={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeIn}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
+                key={member.name}
+                className="group"
+                initial={{ opacity: 0, y: 30 }}
+                animate={teamInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.1 * index }}
               >
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle>{value.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{value.description}</p>
-                  </CardContent>
-                </Card>
+                <div className="relative h-[300px] overflow-hidden rounded-xl shadow-lg mb-6">
+                  <Image src={member.image || "/placeholder.svg"} alt={member.name} fill className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform">
+                    <p className="text-sm opacity-80">
+                      Dedicated to excellence in logistics and transportation solutions across East Africa.
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-navy dark:text-white">{member.name}</h3>
+                  <p className="text-primary font-medium">{member.role}</p>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-16 bg-gray-50 dark:bg-mafl-dark/50">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-            <div className="flex items-center justify-center mb-6">
-              <div className="h-1 w-16 bg-mafl-orange rounded-full"></div>
-            </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Find answers to common questions about our logistics services.
+      {/* FAQ Section - Enhanced styling */}
+      <section className="py-20 bg-gray-50 dark:bg-navy/80">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center mb-16">
+            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+              Common Questions
+            </span>
+            <h2 className="text-4xl font-bold mb-4 text-navy dark:text-white">Frequently Asked Questions</h2>
+            <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
+            <p className="max-w-3xl mx-auto text-lg text-navy/80 dark:text-gray-300">
+              Find answers to common questions about our logistics services
             </p>
-          </motion.div>
-
-          <div className="max-w-3xl mx-auto">
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger>What areas do you serve?</AccordionTrigger>
-                <AccordionContent>
-                  We provide logistics services throughout Kenya and across East Africa, including Rwanda, Uganda,
-                  Tanzania, Ethiopia, and South Sudan.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-2">
-                <AccordionTrigger>How do you ensure the safety of transported goods?</AccordionTrigger>
-                <AccordionContent>
-                  We implement strict safety protocols, use appropriate equipment for different cargo types, and provide
-                  comprehensive insurance coverage for all shipments.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-3">
-                <AccordionTrigger>Can you handle oversized or specialized cargo?</AccordionTrigger>
-                <AccordionContent>
-                  Yes, we specialize in transporting heavy machinery, oversized loads, and specialized equipment with
-                  our purpose-built fleet and experienced team.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-4">
-                <AccordionTrigger>What makes MAFL Logistics different from other providers?</AccordionTrigger>
-                <AccordionContent>
-                  Our commitment to reliability, customer-focused approach, regional expertise, and comprehensive
-                  service offerings set us apart in the logistics industry.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <FAQSection faqs={faqs} className="bg-transparent" />
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
-  )
-}
-
-function Globe(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <line x1="2" x2="22" y1="12" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  )
-}
-
-function Truck(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M10 17h4V5H2v12h3" />
-      <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L16 6h-4v11h3" />
-      <circle cx="7.5" cy="17.5" r="2.5" />
-      <circle cx="17.5" cy="17.5" r="2.5" />
-    </svg>
-  )
-}
-
-function Warehouse(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z" />
-      <path d="M6 18h12" />
-      <path d="M6 14h12" />
-      <rect width="12" height="2" x="6" y="10" />
-    </svg>
   )
 }

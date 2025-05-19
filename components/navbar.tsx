@@ -2,208 +2,201 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/use-auth"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Menu, X, UserIcon, LogOut, Settings, Bell } from "lucide-react"
-import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
+  Menu,
+  LayoutDashboard,
+  MessageSquare,
+  Briefcase,
+  Building2,
+  FileText,
+  Users,
+  Sun,
+  Moon,
+  Bell,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
+import { useTheme } from "next-themes"
+import { Logo } from "@/components/logo"
+import { MainSidebar } from "@/components/main-sidebar"
+import { useAuth } from "@/hooks/use-auth"
+import { useSupportChat } from "@/components/support-chat-context"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, isAdmin, logout } = useAuth()
-  const pathname = usePathname()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme()
   const router = useRouter()
-  const [isOnline, setIsOnline] = useState(true)
+  const { toast } = useToast()
+  const { isAuthenticated, userType } = useAuth()
+  const { openChat } = useSupportChat()
 
-  // Check online status
+  // Check if component is mounted
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
-
-    window.addEventListener("online", handleOnline)
-    window.addEventListener("offline", handleOffline)
-
-    return () => {
-      window.removeEventListener("online", handleOnline)
-      window.removeEventListener("offline", handleOffline)
-    }
+    setMounted(true)
   }, [])
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
   }
 
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/services", label: "Services" },
-    { href: "/about", label: "About" },
-    { href: "/blog", label: "Blog" },
-  ]
-
-  const isActive = (path: string) => {
-    return pathname === path
+  const closeSidebar = () => {
+    setIsSidebarOpen(false)
   }
 
-  const handleAuthClick = () => {
-    router.push("/auth")
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
+
+  // Determine dashboard URL based on user type
+  const getDashboardUrl = () => {
+    if (!isAuthenticated) return "#"
+
+    switch (userType) {
+      case "employee":
+        return "/dashboard/admin"
+      case "client":
+        return "/dashboard/client"
+      case "user":
+      default:
+        return "/dashboard/user"
+    }
+  }
+
+  const handleContactClick = () => {
+    openChat()
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block">MAFL Logistics</span>
-          </Link>
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-0">
+        <div className="container flex h-16 items-center">
+          <div className="flex items-center">
+            <Logo showText={true} />
+          </div>
 
-          <nav className="hidden md:flex gap-6">
-            {navLinks.map((link) => (
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden md:flex md:items-center md:justify-center md:space-x-6 flex-1">
+            <div className="flex items-center justify-center space-x-6">
               <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(link.href) ? "text-foreground" : "text-muted-foreground"
-                }`}
+                href="/services"
+                className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-accent/50"
               >
-                {link.label}
+                <Briefcase className="h-4 w-4" />
+                <span>Services</span>
               </Link>
-            ))}
-          </nav>
-        </div>
+              <Link
+                href="/about"
+                className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-accent/50"
+              >
+                <Building2 className="h-4 w-4" />
+                <span>Company</span>
+              </Link>
+              <Link
+                href="/blogs"
+                className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-accent/50"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Blogs</span>
+              </Link>
+              <Link
+                href="/careers"
+                className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-accent/50"
+              >
+                <Users className="h-4 w-4" />
+                <span>Careers</span>
+              </Link>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
+          {/* Right-aligned buttons */}
+          <div className="hidden md:flex md:items-center md:space-x-2">
+            {/* Theme Toggle Button */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="mr-2"
+                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-[1.2rem] w-[1.2rem]" />
+                ) : (
+                  <Moon className="h-[1.2rem] w-[1.2rem]" />
+                )}
+              </Button>
+            )}
 
-          {user ? (
-            <>
-              <div className="hidden md:flex items-center gap-2">
-                <NotificationDropdown />
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <div className="relative">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={user?.avatar_url || "/placeholder.svg"}
-                          alt={user?.name || user?.email || "User"}
-                        />
-                        <AvatarFallback>
-                          {user?.name
-                            ? user.name.charAt(0).toUpperCase()
-                            : user?.email
-                              ? user.email.charAt(0).toUpperCase()
-                              : "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span
-                        className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${
-                          isOnline ? "bg-green-500" : "bg-gray-400"
-                        }`}
-                      />
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name || "User"}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                      <div className="flex items-center mt-1">
-                        <span className={`h-2 w-2 rounded-full mr-1 ${isOnline ? "bg-green-500" : "bg-gray-400"}`} />
-                        <span className="text-xs text-muted-foreground">{isOnline ? "Online" : "Offline"}</span>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+            {/* Notification Bell (for all users) */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="mr-2 relative">
+                  <Bell className="h-[1.2rem] w-[1.2rem]" />
+                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <div className="flex flex-col space-y-1 p-2">
+                  <h3 className="font-medium text-sm">Notifications</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {isAuthenticated ? "You have new notifications" : "Sign in to view your notifications"}
+                  </p>
+                </div>
+                {!isAuthenticated && (
                   <DropdownMenuItem asChild>
-                    <Link href={isAdmin ? "/admin" : "/dashboard"} className="flex items-center">
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
+                    <Link href="/auth/login" className="cursor-pointer">
+                      Sign in to view notifications
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/notifications" className="flex items-center">
-                      <Bell className="mr-2 h-4 w-4" />
-                      <span>Notifications</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="flex items-center">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <Button onClick={handleAuthClick}>Sign In</Button>
-          )}
+                )}
+                {isAuthenticated && (
+                  <>
+                    <DropdownMenuItem className="flex flex-col items-start">
+                      <span className="font-medium">New message received</span>
+                      <span className="text-xs text-muted-foreground">2 minutes ago</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex flex-col items-start">
+                      <span className="font-medium">Shipment status updated</span>
+                      <span className="text-xs text-muted-foreground">1 hour ago</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <Button variant="ghost" className="md:hidden" size="icon" onClick={toggleMenu}>
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isAuthenticated ? (
+              <Link href={getDashboardUrl()}>
+                <Button variant="default" size="sm" className="gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Button>
+              </Link>
+            ) : (
+              <Button variant="default" size="sm" onClick={handleContactClick} className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                <span>Contact Us</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            aria-label="Toggle Menu"
+            className="md:hidden ml-auto"
+          >
+            <Menu className="h-6 w-6" />
           </Button>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="container py-4 space-y-4">
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(link.href) ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {user && (
-                <>
-                  <Link
-                    href="/notifications"
-                    className="text-sm font-medium transition-colors hover:text-primary flex items-center"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Bell className="h-4 w-4 mr-2" />
-                    Notifications
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className="text-sm font-medium transition-colors hover:text-primary flex items-center"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Profile Settings
-                  </Link>
-                </>
-              )}
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
+      {/* Main Sidebar */}
+      <MainSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+    </>
   )
 }

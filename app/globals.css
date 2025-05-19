@@ -6,47 +6,80 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
+
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 38 97% 50%;
+
+    --primary: 24 100% 50%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 38 97% 50%;
+    --ring: 222.2 84% 4.9%;
+
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 217 71% 15%;
+    --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 217 71% 13%;
+
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --popover: 217 71% 13%;
+
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 38 97% 50%;
+
+    --primary: 24 100% 50%;
     --primary-foreground: 222.2 47.4% 11.2%;
+
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
+
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217 91% 60%;
+
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 38 97% 50%;
+    --ring: 212.7 26.8% 83.9%;
   }
+}
+
+/* Enable smooth scrolling across the entire site */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure theme transitions are smooth but not too heavy */
+* {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Force dark mode styles when .dark class is applied */
+.dark body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 @layer base {
@@ -55,5 +88,242 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold;
+  }
+}
+
+@layer components {
+  /* Fixed section title and subtitle styles */
+  .section-title {
+    @apply text-4xl font-extrabold mb-2 text-black dark:text-white;
+  }
+
+  .section-subtitle {
+    @apply text-4xl font-extrabold mb-8 text-primary;
+  }
+
+  .diagonal-shape {
+    @apply relative overflow-hidden;
+  }
+
+  .diagonal-shape::after {
+    content: "";
+    @apply absolute bottom-0 right-0 w-full h-[100px] bg-white dark:bg-background transform -skew-y-3 origin-bottom-right;
+  }
+
+  .orange-highlight {
+    @apply text-primary font-bold;
+  }
+
+  .numbered-item {
+    @apply bg-primary text-navy font-extrabold text-2xl p-4 rounded-md inline-flex items-center justify-center w-[60px] h-[60px];
+  }
+
+  /* Service card styles */
+  .service-card {
+    @apply relative overflow-hidden bg-white dark:bg-background p-6 rounded-lg shadow border border-border transition-shadow hover:shadow-md;
+  }
+
+  .service-card::before {
+    content: "";
+    @apply absolute top-0 left-0 w-1 h-full bg-primary;
+  }
+
+  .service-title {
+    @apply text-xl font-bold mb-2 text-black dark:text-white;
+  }
+
+  .service-bullet {
+    @apply flex items-start mb-2;
+  }
+
+  .service-bullet > * + * {
+    @apply ml-2;
+  }
+
+  .service-bullet-point {
+    @apply text-primary font-bold text-lg;
+  }
+
+  /* Testimonial section styles */
+  .testimonial-section {
+    @apply py-16 text-center;
+  }
+
+  .testimonial-card {
+    @apply p-8 rounded-lg shadow-md max-w-3xl mx-auto;
+  }
+
+  .testimonial-quote {
+    @apply text-xl italic font-medium mb-6;
+  }
+
+  .testimonial-author {
+    @apply text-lg font-bold;
+  }
+
+  .testimonial-company {
+    @apply text-sm;
+  }
+
+  .testimonial-rating {
+    @apply flex justify-center my-4;
+  }
+
+  .testimonial-rating > * + * {
+    @apply ml-1;
+  }
+
+  .testimonial-dot {
+    @apply w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600;
+  }
+
+  .testimonial-dot.active {
+    @apply bg-primary;
+  }
+
+  /* Partners section styles */
+  .partners-section {
+    @apply py-16;
+  }
+
+  .partner-card {
+    @apply p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center border border-gray-100 dark:border-gray-800;
+  }
+
+  .partner-name {
+    @apply font-bold mt-2;
+  }
+
+  .partner-type {
+    @apply text-sm;
+  }
+
+  /* Button styles */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md font-medium text-sm py-2.5 px-5 transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground font-bold;
+  }
+
+  .btn-primary:hover {
+    @apply bg-primary/90;
+  }
+
+  .btn-outline {
+    @apply bg-transparent border border-black text-black dark:border-white dark:text-white;
+  }
+
+  .btn-outline:hover {
+    @apply bg-black/5 dark:bg-white/10;
+  }
+
+  .btn-lg {
+    @apply h-11 px-8 rounded-lg;
+  }
+
+  /* FAQ section styles */
+  .faq-item {
+    @apply border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden;
+  }
+
+  .faq-question {
+    @apply text-lg font-semibold text-black dark:text-white;
+  }
+
+  .faq-answer {
+    @apply text-black dark:text-gray-300;
+  }
+
+  /* Reddit-style font for logo text */
+  .logo-text {
+    @apply font-sans font-bold tracking-tight text-foreground;
+    letter-spacing: -0.02em;
+  }
+
+  /* Text animation classes */
+  .animate-fade-in {
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideUp 0.8s ease-out forwards;
+  }
+
+  .animate-delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 0.3s;
+  }
+
+  .animate-delay-400 {
+    animation-delay: 0.4s;
+  }
+
+  .animate-delay-500 {
+    animation-delay: 0.5s;
+  }
+
+  .animate-delay-600 {
+    animation-delay: 0.6s;
+  }
+
+  .animate-delay-700 {
+    animation-delay: 0.7s;
+  }
+
+  .animate-delay-800 {
+    animation-delay: 0.8s;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Removed hardcoded footer styling */
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
 }
