@@ -213,9 +213,23 @@ const api = {
       const queryParams = new URLSearchParams(params).toString();
       return fetchAPI(`${endpoint}?${queryParams}`);
     },
+    
     getCategories: async () => fetchAPI("/blog/categories"),
+    
     getTags: async () => fetchAPI("/blog/tags"),
-    getBySlug: async (slug: string) => fetchAPI(`/blog/posts/${slug}`),
+    
+    getById: async (id: string) => fetchAPI(`/blog/posts/${id}`),
+    
+    // Modified to handle Fast JSON API specifically
+    getBySlug: async (slug: string) => {
+      // For Fast JSON API, you might need to use a filter parameter instead
+      // This depends on how your backend implements slug filtering
+      return fetchAPI(`/blog/posts?filter[slug]=${encodeURIComponent(slug)}`);
+      
+      // Alternative approaches depending on your backend implementation:
+      // return fetchAPI(`/blog/posts?slug=${encodeURIComponent(slug)}`);
+      // return fetchAPI(`/blog/posts/by-slug/${encodeURIComponent(slug)}`);
+    }
   },
 
   conversations: {

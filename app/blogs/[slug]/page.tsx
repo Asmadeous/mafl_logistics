@@ -1,102 +1,164 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useBlogs } from "@/hooks/use-blogs"
-import { SharedLoading } from "@/components/shared-loading"
-import { ArrowLeft, Calendar, Clock, Share2, User } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useBlogs } from "@/hooks/use-blogs";
+import { SharedLoading } from "@/components/shared-loading";
+import { ArrowLeft, Calendar, Clock, Share2, User } from "lucide-react";
 
 type BlogPost = {
-  id: number
-  slug: string
-  title: string
-  content: string
-  published_at: string
-  featured_image?: string
-  category_id?: number
-  category?: { id: number; name: string }
-  tags?: { id: number; name: string }[]
-  employee?: { full_name: string }
-}
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  published_at: string;
+  featured_image?: string;
+  category_id?: string;
+  category?: { id: string; name: string };
+  tags?: { id: string; name: string }[];
+  employee?: { full_name: string };
+};
 
 export default function BlogPostPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { slug } = params
-  const [post, setPost] = useState<BlogPost | null>(null)
-  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const { fetchBlogBySlug, fetchBlogs } = useBlogs()
+  const params = useParams();
+  const router = useRouter();
+  const { slug } = params;
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { fetchBlogBySlug, fetchBlogs } = useBlogs();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        setIsLoading(true)
+        setIsLoading(true);
+        setError(null);
 
         if (!slug) {
-          console.error("No slug provided")
-          return
+          setError("No slug provided");
+          console.error("No slug provided");
+          return;
         }
 
-        console.log("Fetching blog post with slug:", slug)
-        const postData = await fetchBlogBySlug(slug)
-        console.log("Blog post data:", postData)
-
-        if (!postData || postData.error) {
-          console.error("Error fetching blog post:", postData?.error || "No data returned")
-          return
+        if (typeof fetchBlogBySlug !== "function") {
+          setError("Blog fetching functionality is not available");
+          console.error("fetchBlogBySlug is not available");
+          return;
         }
 
-        setPost(postData)
-
-        // Fetch related posts based on category or tags
-        if (postData.category_id) {
-          const response = await fetchBlogs(1, postData.category_id)
-          const related = response.filter((blog:any) => blog.id !== postData.id).slice(0, 3)
-          setRelatedPosts(Array.isArray(related) ? related : [])
+        const postData = await fetchBlogBySlug(slug as string);
+        if (!postData) {
+          setError("Blog post not found");
+          console.error("Error fetching blog post: No data returned");
+          return;
         }
-      } catch (error) {
-        console.error("Error loading blog post:", error)
+
+        const formattedPost: BlogPost = {
+          ...postData,
+          id: String(postData.id),
+          category_id: postData.category?.id,
+          category: postData.category
+            ? { id: String(postData.category.id), name: postData.category.name }
+            : undefined,
+          tags: Array.isArray(postData.tags)
+            ? postData.tags.map((tag: any) => ({
+                id: String(tag.id),
+                name: tag.name,
+              }))
+            : [],
+          employee: postData.author_name ? { full_name: postData.author_name } : undefined,
+        };
+
+        setPost(formattedPost);
+
+        // Fetch related posts based on category
+        if (postData.category?.id) {
+          const response = await fetchBlogs(1, 10, postData.category.id); // Fixed: Pass category.id
+          const related = (response ?? [])
+            .filter((blog: any) => String(blog.id) !== String(postData.id))
+            .slice(0, 3)
+            .map((blog: any) => ({
+              ...blog,
+              id: String(blog.id),
+              category_id: blog.category?.id,
+              category: blog.category
+                ? { id: String(blog.category.id), name: blog.category.name }
+                : undefined,
+              tags: Array.isArray(blog.tags)
+                ? blog.tags.map((tag: any) => ({
+                    id: String(tag.id),
+                    name: tag.name,
+                  }))
+                : [],
+              employee: blog.author_name ? { full_name: blog.author_name } : undefined,
+            }));
+          setRelatedPosts(Array.isArray(related) ? related : []);
+        }
+      } catch (error: any) {
+        const errorMessage = error.message || "Failed to load blog post";
+        setError(errorMessage);
+        console.error("Error loading blog post:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [slug, fetchBlogBySlug, fetchBlogs])
+    loadData();
+  }, [slug, fetchBlogBySlug, fetchBlogs]);
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/blogs/${slug}`;
+    const shareData = {
+      title: post?.title || "MAFL Logistics Blog Post",
+      text: post?.title || "Check out this blog post from MAFL Logistics!",
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("Link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      alert("Failed to share. Link copied to clipboard!");
+      await navigator.clipboard.writeText(shareUrl);
+    }
+  };
 
   if (isLoading) {
-    return <SharedLoading />
+    return <SharedLoading />;
   }
 
-  if (!post) {
+  if (error || !post) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Blog Post Not Found</h1>
-        <p className="mb-8">The blog post you're looking for doesn't exist or has been removed.</p>
+        <h1 className="text-2xl font-bold mb-4">{error ? "Error Loading Blog Post" : "Blog Post Not Found"}</h1>
+        <p className="mb-8">{error || "The blog post you're looking for doesn't exist or has been removed."}</p>
         <Button onClick={() => router.push("/blogs")}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blogs
         </Button>
       </div>
-    )
+    );
   }
 
-  // Format the published date
   const publishedDate = post.published_at
     ? new Date(post.published_at).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
-    : "Unknown date"
+    : "Unknown date";
 
-  // Estimate read time (rough calculation: 200 words per minute)
-  const wordCount = post.content?.split(/\s+/).length || 0
-  const readTime = Math.max(1, Math.ceil(wordCount / 200))
+  const wordCount = post.content?.split(/\s+/).length || 0;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -141,7 +203,7 @@ export default function BlogPostPage() {
         <div className="relative h-[400px] w-full mb-8 rounded-lg overflow-hidden">
           <Image
             src={post.featured_image || "/placeholder.svg?height=400&width=800"}
-            alt={post.title}
+            alt={post.title || "Blog post image"}
             fill
             className="object-cover"
             priority
@@ -159,7 +221,13 @@ export default function BlogPostPage() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500 dark:text-gray-400">Share this post:</span>
-                <Button variant="outline" size="icon" className="h-8 w-8">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleShare}
+                  aria-label="Share this blog post"
+                >
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -183,7 +251,7 @@ export default function BlogPostPage() {
                         <div className="relative h-32 w-full mb-2 rounded overflow-hidden">
                           <Image
                             src={relatedPost.featured_image || "/placeholder.svg?height=200&width=300"}
-                            alt={relatedPost.title}
+                            alt={relatedPost.title || "Related blog post image"}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
                           />
@@ -206,5 +274,5 @@ export default function BlogPostPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

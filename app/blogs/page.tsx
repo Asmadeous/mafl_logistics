@@ -1,132 +1,133 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useBlogs } from "@/hooks/use-blogs"
-import { PageBanner } from "@/components/page-banner"
-import { SharedLoading } from "@/components/shared-loading"
-import { CalendarIcon, User } from "lucide-react"
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
+import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useBlogs } from "@/hooks/use-blogs";
+import { PageBanner } from "@/components/page-banner";
+import { SharedLoading } from "@/components/shared-loading";
+import { CalendarIcon, User } from "lucide-react";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 type BlogPost = {
-  id: string
-  title: string
-  slug: string
-  excerpt: string
-  featured_image?: string
-  published_at: string
-  category?: { id: string; name: string }
-  tags?: { id: string; name: string }[]
-  author?: { name: string }
-}
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  featured_image?: string;
+  published_at: string;
+  category?: { id: string; name: string; slug: string; description: string };
+  tags?: { id: string; name: string; slug: string }[];
+  author_name?: string; // Aligned with useBlogs
+};
 
-type Category = { id: string; name: string }
-type Tag = { id: string; name: string }
+type Category = { id: string; name: string; slug: string; description: string };
+type Tag = { id: string; name: string; slug: string };
 
 export default function BlogsPage() {
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [posts, setPosts] = useState<BlogPost[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [tags, setTags] = useState<Tag[]>([])
-  const [activeCategory, setActiveCategory] = useState<string>("all")
-  const [activeTags, setActiveTags] = useState<string[]>([])
-  const { fetchBlogs, fetchCategories, fetchTags } = useBlogs()
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const { fetchBlogs, fetchCategories, fetchTags } = useBlogs();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        setIsLoading(true)
+        setIsLoading(true);
+        const [postsData, categoriesData, tagsData] = await Promise.all([
+          fetchBlogs(),
+          fetchCategories(),
+          fetchTags(),
+        ]);
 
-        // Fetch all data in parallel
-        const [postsData, categoriesData, tagsData] = await Promise.all([fetchBlogs(), fetchCategories(), fetchTags()])
-
-        console.log("Posts data:", postsData)
-        console.log("Categories data:", categoriesData)
-        console.log("Tags data:", tagsData)
-
-        // Set posts with fallback to empty array, mapping id fields to string
         setPosts(
           Array.isArray(postsData)
             ? postsData.map((post: any) => ({
                 ...post,
                 id: String(post.id),
                 category: post.category
-                  ? { ...post.category, id: String(post.category.id) }
+                  ? { id: String(post.category.id), name: post.category.name, slug: post.category.slug, description: post.category.description }
                   : undefined,
                 tags: Array.isArray(post.tags)
                   ? post.tags.map((tag: any) => ({
-                      ...tag,
                       id: String(tag.id),
+                      name: tag.name,
+                      slug: tag.slug,
                     }))
                   : [],
+                author_name: post.author_name || post.employee?.full_name || "MAFL Team",
               }))
             : []
-        )
+        );
 
-        // Set categories with fallback to empty array, mapping id fields to string
         setCategories(
           Array.isArray(categoriesData)
             ? categoriesData.map((cat: any) => ({
-                ...cat,
                 id: String(cat.id),
+                name: cat.name,
+                slug: cat.slug,
+                description: cat.description,
               }))
             : []
-        )
+        );
 
-        // Set tags with fallback to empty array, mapping id fields to string
         setTags(
           Array.isArray(tagsData)
             ? tagsData.map((tag: any) => ({
-                ...tag,
                 id: String(tag.id),
+                name: tag.name,
+                slug: tag.slug,
               }))
             : []
-        )
+        );
       } catch (error) {
-        console.error("Error loading blog data:", error)
-        // Set fallbacks in case of error
-        setPosts([])
-        setCategories([])
-        setTags([])
+        console.error("Error loading blog data:", error);
+        setPosts([]);
+        setCategories([]);
+        setTags([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [fetchBlogs, fetchCategories, fetchTags])
+    loadData();
+  }, [fetchBlogs, fetchCategories, fetchTags]);
 
-  const toggleTag = (tagId:any) => {
-    if (activeTags.includes(tagId)) {
-      setActiveTags(activeTags.filter((id) => id !== tagId))
-    } else {
-      setActiveTags([...activeTags, tagId])
-    }
-  }
+  const toggleTag = (tagId: string) => {
+    setActiveTags((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+  };
 
-  const filteredPosts = posts.filter((post) => {
-    const matchesCategory = activeCategory === "all" || post.category?.id === activeCategory
-    const matchesTags = activeTags.length === 0 || post.tags?.some((tag) => activeTags.includes(tag.id))
-    return matchesCategory && matchesTags
-  })
+  const filteredPosts = useMemo(() => {
+    return posts.filter((post) => {
+      const matchesCategory =
+        activeCategory === "all" || (post.category && post.category.id === activeCategory);
+      const matchesTags =
+        activeTags.length === 0 ||
+        (post.tags && post.tags.some((tag) => activeTags.includes(tag.id)));
+      return matchesCategory && matchesTags;
+    });
+  }, [posts, activeCategory, activeTags]);
 
   if (isLoading) {
-    return <SharedLoading />
+    return <SharedLoading />;
   }
 
-  // Create safe versions of arrays for rendering
-  const safeCategories = Array.isArray(categories) ? categories : []
-  const safeTags = Array.isArray(tags) ? tags : []
-  const safeFilteredPosts = Array.isArray(filteredPosts) ? filteredPosts : []
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeTags = Array.isArray(tags) ? tags : [];
+  const safeFilteredPosts = Array.isArray(filteredPosts) ? filteredPosts : [];
 
   return (
     <div className="container mx-auto px-4 py-8">
-       <Navbar />
+      <Navbar />
       <PageBanner
         title="Our Blog"
         subtitle="Latest news, insights, and updates from MAFL Logistics"
@@ -147,7 +148,6 @@ export default function BlogsPage() {
                 >
                   All Categories
                 </Button>
-
                 {safeCategories.map((category) => (
                   <Button
                     key={category.id}
@@ -170,6 +170,8 @@ export default function BlogsPage() {
                     variant={activeTags.includes(tag.id) ? "default" : "outline"}
                     className="cursor-pointer"
                     onClick={() => toggleTag(tag.id)}
+                    role="button"
+                    aria-pressed={activeTags.includes(tag.id)}
                   >
                     {tag.name}
                   </Badge>
@@ -194,7 +196,7 @@ export default function BlogsPage() {
                   <div className="relative h-48 w-full">
                     <Image
                       src={post.featured_image || "/placeholder.svg?height=400&width=600"}
-                      alt={post.title}
+                      alt={post.title || "Blog post image"}
                       fill
                       className="object-cover"
                     />
@@ -221,7 +223,7 @@ export default function BlogsPage() {
                   <CardFooter className="flex justify-between items-center pt-4 border-t">
                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                       <User className="h-4 w-4 mr-1" />
-                      {post.author?.name || "MAFL Team"}
+                      {post.author_name || "MAFL Team"}
                     </div>
                     <Link href={`/blogs/${post.slug}`}>
                       <Button variant="link" className="p-0 h-auto font-medium">
@@ -235,7 +237,7 @@ export default function BlogsPage() {
           )}
         </div>
       </div>
-       <Footer />
+      <Footer />
     </div>
-  )
+  );
 }
