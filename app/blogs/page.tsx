@@ -131,7 +131,7 @@ export default function BlogsPage() {
       <PageBanner
         title="Our Blog"
         subtitle="Latest news, insights, and updates from MAFL Logistics"
-        backgroundImage="/blog-banner.jpg"
+        backgroundImage="/blog-banner.png"
         imageAlt="MAFL Logistics Blog Banner"
       />
 

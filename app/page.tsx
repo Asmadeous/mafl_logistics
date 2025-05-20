@@ -216,7 +216,7 @@ export default function Home() {
                 <Button
                   variant="default"
                   size="lg"
-                  className="w-full sm:w-auto text-base px-6 py-3 bg-primary hover:bg-primary/90 text-black font-medium"
+                  className="w-full sm:w-auto text-base px-6 py-3 bg-primary hover:bg-primary/90"
                 >
                   About Company
                 </Button>

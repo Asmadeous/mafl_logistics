@@ -124,7 +124,7 @@ const serviceCategories = [
         shortDescription: "Expert customs documentation and clearance services for smooth border crossings",
         fullDescription:
           "Our customs clearance service provides expert handling of all documentation and procedures required for importing and exporting goods across international borders. Our team of experienced customs brokers ensures compliance with all regulations, minimizing delays and avoiding penalties while facilitating smooth movement of your cargo.",
-        image: "/east-africa-cross-border-flow.png",
+        image: "/customs.jpg",
         videoUrl: "https://example.com/videos/customs-clearance.mp4",
         features: [
           "Documentation preparation and verification",
@@ -591,7 +591,7 @@ export default function ServicesPage() {
                 title: "Regional Logistics Network",
                 description:
                   "Established seamless freight services to Kenya, Rwanda, Ethiopia, Uganda, and Tanzania with customs clearance support.",
-                image: "/east-africa-cross-border-flow.png",
+                image: "/regional-logistics.jpg",
               },
             ].map((study, index) => (
               <motion.div

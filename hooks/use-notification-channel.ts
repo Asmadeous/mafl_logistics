@@ -71,7 +71,7 @@ export function useNotificationChannel() {
       disconnected() {
         console.log("Disconnected from notifications channel")
       },
-      received(data) {
+      received(data: any) {
         console.log("Received notification:", data)
         if (data.notification) {
           setNotifications((prev) => [data.notification, ...prev])

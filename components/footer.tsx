@@ -49,7 +49,7 @@ export default function Footer() {
                   <span className="sr-only">Instagram</span>
                 </Link>
                 <Link
-                  href="https://api.whatsapp.com/send?phone=%2B254779403242"
+                  href="https://api.whatsapp.com/send?phone=%2B254779 Tie this to the bottom section403242"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-foreground dark:text-white hover:text-orange-500 transition-colors"
@@ -224,28 +224,25 @@ export default function Footer() {
             </div>
           </div>
           <div className="border-t border-border mt-4 pt-4">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-xs text-muted-foreground dark:text-gray-400">
-                © {new Date().getFullYear()}{" "}
-                <span className="font-semibold text-orange-500 dark:text-orange-400">
-                  MAISHA AGROFARM LIMITED LOGISTICS
-                </span>
-                . All rights reserved.
-              </p>
-              <div className="flex space-x-4 mt-2 md:mt-0">
+            <div className="flex flex-row items-center justify-between space-x-4 min-w-0">
+              <div className="flex space-x-4 shrink-0">
                 <Link
                   href="/privacy-policy"
-                  className="text-xs text-muted-foreground dark:text-gray-400 hover:text-orange-500 transition-colors"
+                  className="text-xs text-muted-foreground dark:text-gray-400 hover:text-orange-500 transition-colors whitespace-nowrap"
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   href="/terms-of-service"
-                  className="text-xs text-muted-foreground dark:text-gray-400 hover:text-orange-500 transition-colors"
+                  className="text-xs text-muted-foreground dark:text-gray-400 hover:text-orange-500 transition-colors whitespace-nowrap"
                 >
                   Terms of Service
                 </Link>
               </div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400 text-right min-w-0 truncate">
+                <span>MAFL Logistics Ltd</span>
+                © {new Date().getFullYear()}. All rights reserved.
+              </p>
             </div>
           </div>
         </div>
