@@ -6,5 +6,5 @@ export default function ClientDashboardLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return <ProtectedRoute requiredUserType="client">{children}</ProtectedRoute>
+  return <ProtectedRoute>{children}</ProtectedRoute>
 }

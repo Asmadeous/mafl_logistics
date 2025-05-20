@@ -1,56 +1,54 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
-import { LockKeyhole, Mail, User, CheckCircle2, Briefcase, Shield } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { LockKeyhole, Mail, User, CheckCircle2, Briefcase, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function UnifiedRegisterPage() {
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phoneNumber, setPhoneNumber] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [userType, setUserType] = useState<"user" | "client" | "employee">("user")
-  const [companyName, setCompanyName] = useState("")
-  const [marketingConsent, setMarketingConsent] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
-  const [showTerms, setShowTerms] = useState(false)
-  const router = useRouter()
-  const { toast } = useToast()
-  const { register } = useAuth()
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [userType, setUserType] = useState<"user" | "client" | "employee">("user");
+  const [companyName, setCompanyName] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const { register, googleAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (password !== confirmPassword) {
       toast({
         title: "Passwords don't match",
         description: "Please make sure your passwords match.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      // Prepare data according to the schema
-      let userData: any = {}
+      let userData: any = {};
 
       if (userType === "user") {
         userData = {
@@ -62,7 +60,7 @@ export default function UnifiedRegisterPage() {
             password_confirmation: confirmPassword,
             remember_me: false,
           },
-        }
+        };
       } else if (userType === "client") {
         userData = {
           client: {
@@ -73,7 +71,7 @@ export default function UnifiedRegisterPage() {
             password_confirmation: confirmPassword,
             remember_me: false,
           },
-        }
+        };
       } else {
         userData = {
           employee: {
@@ -83,68 +81,91 @@ export default function UnifiedRegisterPage() {
             password,
             password_confirmation: confirmPassword,
             remember_me: false,
-            role: "staff", // Default role
+            role: "staff",
           },
-        }
+        };
       }
 
-      const success = await register(userData, userType)
+      const success = await register(userData, userType);
 
       if (success) {
         toast({
           title: "Account Created",
           description: `Welcome to MAFL Logistics${userType === "employee" ? " Admin" : ""}!`,
-        })
+        });
       } else {
-        throw new Error("Registration failed")
+        throw new Error("Registration failed");
       }
     } catch (error) {
       toast({
         title: "Registration Failed",
         description: "There was an error creating your account. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
+  const handleGoogleSignup = async () => {
+    if (userType !== "user") {
+      toast({
+        title: "Google Signup Unavailable",
+        description: "Google signup is only available for regular users.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const success = await googleAuth();
+      if (!success) {
+        throw new Error("Google authentication failed");
+      }
+    } catch (error) {
+      toast({
+        title: "Google Signup Failed",
+        description: "There was an error signing up with Google. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getUserTypeIcon = () => {
     switch (userType) {
       case "client":
-        return <Briefcase className="h-10 w-10 text-primary" />
+        return <Briefcase className="h-10 w-10 text-primary" />;
       case "employee":
-        return <Shield className="h-10 w-10 text-primary" />
+        return <Shield className="h-10 w-10 text-primary" />;
       default:
-        return <User className="h-10 w-10 text-primary" />
+        return <User className="h-10 w-10 text-primary" />;
     }
-  }
+  };
 
   const getUserTypeTitle = () => {
     switch (userType) {
       case "client":
-        return "Client Registration"
+        return "Client Registration";
       case "employee":
-        return "Employee Registration"
+        return "Employee Registration";
       default:
-        return "User Registration"
+        return "User Registration";
     }
-  }
+  };
 
   const getUserTypeDescription = () => {
     switch (userType) {
       case "client":
-        return "Create a client account to manage your logistics operations"
+        return "Create a client account to manage your logistics operations";
       case "employee":
-        return "Create an employee account to access the admin dashboard"
+        return "Create an employee account to access the admin dashboard";
       default:
-        return "Create an account to access our logistics services"
+        return "Create an account to access our logistics services";
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left side - Image/Brand section */}
       <div className="hidden md:flex md:w-1/2 bg-navy relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-navy/90 to-navy/70 z-10"></div>
         <Image src="/logistics-background.png" alt="MAFL Logistics" fill className="object-cover opacity-60" priority />
@@ -180,7 +201,6 @@ export default function UnifiedRegisterPage() {
         </div>
       </div>
 
-      {/* Right side - Signup form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 bg-gray-50 dark:bg-navy/95">
         <Card className="w-full max-w-md shadow-xl border-0">
           <CardHeader className="space-y-1 pb-4">
@@ -194,7 +214,6 @@ export default function UnifiedRegisterPage() {
             <CardDescription className="text-center">{getUserTypeDescription()}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* User Type Selection */}
             <RadioGroup
               value={userType}
               onValueChange={(value) => setUserType(value as "user" | "client" | "employee")}
@@ -408,7 +427,7 @@ export default function UnifiedRegisterPage() {
                   type="button"
                   variant="outline"
                   className="w-full flex items-center justify-center gap-2"
-                  onClick={() => (window.location.href = "/api/proxy/users/auth/google_oauth2")}
+                  onClick={handleGoogleSignup}
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
                     <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
@@ -446,7 +465,6 @@ export default function UnifiedRegisterPage() {
         </Card>
       </div>
 
-      {/* Privacy Policy Modal */}
       <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
@@ -462,7 +480,6 @@ export default function UnifiedRegisterPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Terms of Service Modal */}
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
@@ -478,5 +495,5 @@ export default function UnifiedRegisterPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

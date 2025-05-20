@@ -388,7 +388,7 @@ export default function ServicesPage() {
       <PageBanner
         title="Our Services"
         subtitle="Tailored logistics solutions designed to meet your specific business needs. Providing efficient, reliable, & safe logistics services across Kenya, East Africa, & beyond."
-        backgroundImage="/services-background.jpg"
+        backgroundImage="/services-banner.jpg"
         imageAlt="Logistics Services Background"
       />
 

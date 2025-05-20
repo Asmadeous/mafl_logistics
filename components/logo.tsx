@@ -33,7 +33,12 @@ export function Logo({
         <div className="relative" style={{ width: `${width}px`, height: `${height}px` }}>
           <div className="w-full h-full rounded-full bg-gray-200 animate-pulse" />
         </div>
-        {showText && <span className="ml-2 text-xl font-bold tracking-tight">MAFL Logistics</span>}
+        {showText && (
+          <span className="ml-2 text-xl font-bold tracking-tight">
+            <span style={{ color: "#FF6600" }}>MAFL</span>{" "}
+            <span className="text-black">Logistics</span>
+          </span>
+        )}
       </Link>
     )
   }
@@ -48,32 +53,21 @@ export function Logo({
           borderRadius: rounded ? "50%" : "0",
         }}
       >
-        {/* <Image
-          src={
-          alt="MAFL Logistics"
-          fill
-          sizes={`${Math.max(width, height)}px`}
-          className="object-cover"
-          priority
-        /> */}
         <Image
-  src={theme === "dark" ? "/logo-white.png" : "/logo-dark.jpeg"}
-  alt="MAFL Logistics Logo"
-  width={100}
-  height={100}
-  sizes="120px"
-  className="object-cover"
-/>
+          src={theme === "dark" ? "/logo-white.png" : "/logo-dark.jpeg"}
+          alt="MAFL Logistics Logo"
+          width={100}
+          height={100}
+          sizes="120px"
+          className="object-cover"
+        />
       </div>
-      {showText && <span className="ml-2 text-xl font-bold tracking-tight">MAFL Logistics</span>}
+      {showText && (
+        <span className="ml-2 text-xl font-bold tracking-tight">
+          <span style={{ color: "#FF6600" }}>MAFL</span>{" "}
+          <span>Logistics</span>
+        </span>
+      )}
     </Link>
   )
 }
-<Image
-  src="/logistics-background.png"
-  alt="MAFL Logistics"
-  fill
-  sizes="(max-width: 768px) 100vw, 50vw"
-  className="object-cover opacity-60"
-  priority
-/>

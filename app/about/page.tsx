@@ -60,7 +60,7 @@ export default function AboutPage() {
       <PageBanner
         title="About MAFL Logistics"
         subtitle="Your Trusted Partner for Reliable, Efficient, Innovative Logistics Solutions Across Kenya & East Africa."
-        backgroundImage="/kenyan-logistics-team.jpg"
+        backgroundImage="/company-banner.jpg"
         imageAlt="About MAFL Logistics"
       />
 

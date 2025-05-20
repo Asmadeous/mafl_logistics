@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react"
-import { Logo } from "./logo"
-import { useTheme } from "next-themes"
-import { MapModal } from "./map-modal"
+import { useState } from "react";
+import Link from "next/link";
+import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { Logo } from "./logo";
+import { useTheme } from "next-themes";
+import { MapModal } from "./map-modal";
 
 export default function Footer() {
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false)
-  const { theme } = useTheme()
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const { theme } = useTheme();
 
   return (
     <>
@@ -21,12 +21,16 @@ export default function Footer() {
               <div className="flex flex-col items-center md:items-start">
                 <div className="flex items-center">
                   <Logo width={50} height={50} />
-                  <span className="ml-3 text-lg font-bold text-foreground dark:text-white">
-                    MAFL <span className="text-orange-500 dark:text-orange-400">Logistics</span>
+                  <span className="ml-2 text-base sm:text-lg md:text-xl font-bold tracking-tight flex">
+                    <span style={{ color: "#FF6600" }}>MAFL</span>&nbsp;
+                    <span className="text-black dark:text-white">
+                      Logistics
+                    </span>
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-gray-400">
-                  Your Trusted Partner for Reliable, Efficient, Innovative Logistics Solutions
+                  Your Trusted Partner for Reliable, Efficient, Innovative
+                  Logistics Solutions
                 </p>
               </div>
               <div className="flex space-x-4 mt-3">
@@ -75,7 +79,9 @@ export default function Footer() {
               </div>
             </div>
             <div>
-              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">Quick Links</h3>
+              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">
+                Quick Links
+              </h3>
               <ul className="space-y-1">
                 <li>
                   <Link
@@ -120,7 +126,9 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">Services</h3>
+              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">
+                Services
+              </h3>
               <ul className="space-y-1">
                 <li>
                   <Link
@@ -165,7 +173,9 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">Contact Us</h3>
+              <h3 className="text-base font-bold mb-2 text-foreground dark:text-white">
+                Contact Us
+              </h3>
               <ul className="space-y-2">
                 <li className="flex items-start">
                   <button
@@ -173,7 +183,9 @@ export default function Footer() {
                     className="flex items-start text-left text-foreground dark:text-white hover:text-orange-500 transition-colors focus:outline-none"
                   >
                     <MapPin size={16} className="mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-xs">Malili, Konza, Rift Valley, Kenya</span>
+                    <span className="text-xs">
+                      Malili, Konza, Rift Valley, Kenya
+                    </span>
                   </button>
                 </li>
                 <li className="flex items-center">
@@ -240,14 +252,17 @@ export default function Footer() {
                 </Link>
               </div>
               <p className="text-xs text-muted-foreground dark:text-gray-400 text-right min-w-0 truncate">
-                <span>MAFL Logistics Ltd</span>
-                © {new Date().getFullYear()}. All rights reserved.
+                <span>MAFL Logistics Ltd</span>© {new Date().getFullYear()}. All
+                rights reserved.
               </p>
             </div>
           </div>
         </div>
       </footer>
-      <MapModal isOpen={isMapModalOpen} onClose={() => setIsMapModalOpen(false)} />
+      <MapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+      />
     </>
-  )
+  );
 }

@@ -39,22 +39,16 @@ export default function BlogPostPage() {
         setIsLoading(true);
         setError(null);
 
-        if (!slug) {
-          setError("No slug provided");
-          console.error("No slug provided");
+        if (!slug || typeof slug !== "string") {
+          setError("Invalid slug provided");
+          console.error("Invalid slug provided:", slug);
           return;
         }
 
-        if (typeof fetchBlogBySlug !== "function") {
-          setError("Blog fetching functionality is not available");
-          console.error("fetchBlogBySlug is not available");
-          return;
-        }
-
-        const postData = await fetchBlogBySlug(slug as string);
+        const postData = await fetchBlogBySlug(slug);
         if (!postData) {
           setError("Blog post not found");
-          console.error("Error fetching blog post: No data returned");
+          console.error("Error fetching blog post: No data returned for slug:", slug);
           return;
         }
 
@@ -78,7 +72,7 @@ export default function BlogPostPage() {
 
         // Fetch related posts based on category
         if (postData.category?.id) {
-          const response = await fetchBlogs(1, 10, postData.category.id); // Fixed: Pass category.id
+          const response = await fetchBlogs(1, 10, postData.category.id);
           const related = (response ?? [])
             .filter((blog: any) => String(blog.id) !== String(postData.id))
             .slice(0, 3)
@@ -102,7 +96,7 @@ export default function BlogPostPage() {
       } catch (error: any) {
         const errorMessage = error.message || "Failed to load blog post";
         setError(errorMessage);
-        console.error("Error loading blog post:", error);
+        console.error("Error loading blog post:", { error, message: errorMessage, stack: error.stack });
       } finally {
         setIsLoading(false);
       }
@@ -168,7 +162,9 @@ export default function BlogPostPage() {
         </Button>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {post.category && (
+          {
+
+post.category && (
             <Badge variant="outline" className="bg-primary/10">
               {post.category.name}
             </Badge>

@@ -83,7 +83,7 @@ export default function CareersPage() {
       <PageBanner
         title="Careers at MAFL Logistics"
         subtitle="Join our team and help shape the future of logistics in East Africa"
-        backgroundImage="/logistics-team-planning.png"
+        backgroundImage="/career-banner.jpg"
         imageAlt="MAFL Logistics Team"
       />
 

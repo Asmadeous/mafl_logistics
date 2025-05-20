@@ -56,19 +56,19 @@ export function AppointmentDialog({
   // Initialize form with appointment data if in edit mode
   useEffect(() => {
     if (appointment && mode === "edit") {
-      const appointmentDate = new Date(appointment.scheduledAt)
+      const appointmentDate = new Date(appointment.scheduled_at)
       setDate(appointmentDate)
       setTime(format(appointmentDate, "HH:mm"))
       setDuration(appointment.duration || 60)
       setPurpose(appointment.purpose || "")
-      setEmployeeId(appointment.employeeId || "")
+      setEmployeeId(appointment.employee_id || "")
 
-      if (appointment.clientId) {
+      if (appointment.client_id) {
         setAppointmentType("client")
-        setClientId(appointment.clientId)
-      } else if (appointment.userId) {
+        setClientId(appointment.client_id)
+      } else if (appointment.user_id) {
         setAppointmentType("user")
-        setUserId(appointment.userId)
+        setUserId(appointment.user_id)
       }
 
       setNotes(appointment.notes || "")
@@ -96,7 +96,17 @@ export function AppointmentDialog({
     scheduledAt.setHours(hours, minutes, 0, 0)
 
     // Prepare appointment data according to the schema
-    const appointmentData = {
+    const appointmentData: {
+      appointment: {
+        employee_id: string
+        scheduled_at: string
+        purpose: string
+        notes: string
+        status: string
+        client_id?: string
+        user_id?: string
+      }
+    } = {
       appointment: {
         employee_id: employeeId,
         scheduled_at: scheduledAt.toISOString(),

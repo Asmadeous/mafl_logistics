@@ -93,9 +93,9 @@ export function DashboardSidebar({ isOpen, onClose, dashboardType, onCollapse }:
     { href: "/dashboard/client/invoices", label: "Invoices", icon: <FileText className="h-5 w-5" /> },
     { href: "/dashboard/client/support", label: "Support", icon: <MessageSquare className="h-5 w-5" /> },
     {
-      title: "Appointments",
       href: "/dashboard/client/appointments",
-      icon: Calendar,
+      label: "Appointments",
+      icon: <Calendar className="h-5 w-5" />,
     },
   ]
 
@@ -104,9 +104,9 @@ export function DashboardSidebar({ isOpen, onClose, dashboardType, onCollapse }:
     { href: "/dashboard/user/profile", label: "Profile", icon: <Users className="h-5 w-5" /> },
     { href: "/dashboard/user/orders", label: "Orders", icon: <ShoppingCart className="h-5 w-5" /> },
     {
-      title: "Appointments",
       href: "/dashboard/user/appointments",
-      icon: Calendar,
+      label: "Appointments",
+      icon: <Calendar className="h-5 w-5" />,
     },
   ]
 

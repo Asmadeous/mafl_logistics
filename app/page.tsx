@@ -169,7 +169,8 @@ export default function Home() {
   ]
 
   return (
-    <div className="flex min-h-screen flex-col">
+    // <div className="flex min-h-screen flex-col">
+    <>
       <Navbar />
 
       {/* Hero Section with background video */}
@@ -325,6 +326,7 @@ export default function Home() {
       </section>
 
       <Footer />
-    </div>
+    {/* </div> */}
+    </>
   )
 }

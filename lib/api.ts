@@ -1,3 +1,5 @@
+"use client";
+
 // Base API URL from environment variables
 const API_URL =
   typeof window !== "undefined"
@@ -35,8 +37,12 @@ const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
         ? await response.json()
         : await response.text();
     } catch (error) {
-      console.error("Response parsing error:", error);
-      throw new Error("Failed to parse server response");
+      console.error(`Response parsing error for ${endpoint}:`, error);
+      throw new Error(
+        `Failed to parse server response: ${
+          error && typeof error === "object" && "message" in error ? (error as any).message : String(error)
+        }`
+      );
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -47,19 +53,21 @@ const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
     }
 
     if (!response.ok) {
+      const errorMessage = data?.error || data?.message || `API error: ${response.status} ${response.statusText}`;
       return {
         data: null,
-        error: data.error || data.message || `API error: ${response.status}`,
+        error: errorMessage,
         status: response.status,
       };
     }
 
     return { data, error: null, status: response.status };
   } catch (error: any) {
-    console.error("API request failed:", error);
+    const errorMessage = error instanceof Error ? error.message : `Unknown error occurred while fetching ${endpoint}`;
+    console.error(`API request failed for ${endpoint}:`, { error, stack: error.stack });
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      error: errorMessage,
       status: 500,
     };
   }
@@ -205,13 +213,12 @@ const api = {
         method: "POST",
         body: JSON.stringify({ guest: { name, email } }),
       }),
-    // getCurrentGuest: async () => fetchAPI("/guests/current"),
   },
 
   blogs: {
     getAll: async (params: Record<string, any> = {}, endpoint: string = "/blog/posts") => {
       const queryParams = new URLSearchParams(params).toString();
-      return fetchAPI(`${endpoint}?${queryParams}`);
+      return fetchAPI(`${endpoint}${queryParams ? `?${queryParams}` : ""}`);
     },
     
     getCategories: async () => fetchAPI("/blog/categories"),
@@ -220,16 +227,9 @@ const api = {
     
     getById: async (id: string) => fetchAPI(`/blog/posts/${id}`),
     
-    // Modified to handle Fast JSON API specifically
     getBySlug: async (slug: string) => {
-      // For Fast JSON API, you might need to use a filter parameter instead
-      // This depends on how your backend implements slug filtering
-      return fetchAPI(`/blog/posts?filter[slug]=${encodeURIComponent(slug)}`);
-      
-      // Alternative approaches depending on your backend implementation:
-      // return fetchAPI(`/blog/posts?slug=${encodeURIComponent(slug)}`);
-      // return fetchAPI(`/blog/posts/by-slug/${encodeURIComponent(slug)}`);
-    }
+      return fetchAPI(`/blog/posts/${encodeURIComponent(slug)}`);
+    },
   },
 
   conversations: {
