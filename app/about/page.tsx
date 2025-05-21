@@ -564,7 +564,7 @@ export default function AboutPage() {
               {
                 name: "Sarah Kimani",
                 role: "Operations Manager",
-                image: "/focused-logistics-professional.png",
+                image: "/diverse-woman-portrait.png"
               },
               {
                 name: "David Ochieng",
@@ -574,7 +574,7 @@ export default function AboutPage() {
               {
                 name: "James Mwangi",
                 role: "Fleet Manager",
-                image: "/confident-fleet-manager.png",
+                image: "/logistics-team-planning.jpg"
               },
             ].map((member, index) => (
               <motion.div
