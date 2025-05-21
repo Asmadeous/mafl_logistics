@@ -21,7 +21,7 @@ const testimonials: Testimonial[] = [
     role: "Operations Manager",
     content:
       "MAFL Logistics has transformed our supply chain operations. Their efficient service and attention to detail have saved us both time and money.",
-    imageUrl: "/focused-logistics-professional.png",
+    imageUrl: "/john-mutua.jpg",
   },
   {
     id: "2",
@@ -30,7 +30,7 @@ const testimonials: Testimonial[] = [
     role: "Supply Chain Director",
     content:
       "Working with MAFL has been a game-changer for our business. Their cross-border expertise has opened new markets for us across East Africa.",
-    imageUrl: "/confident-operations-leader.png",
+    imageUrl: "/focused-logistics-professional.png",
   },
   {
     id: "3",

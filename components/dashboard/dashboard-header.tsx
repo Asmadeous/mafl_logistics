@@ -29,7 +29,7 @@ export function DashboardHeader({ onMenuButtonClick, dashboardType, userId }: Da
   const { toast } = useToast()
 
   // Use the notification channel hook
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationChannel(userId)
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationChannel()
 
   // Use ref for audio element to prevent recreation on each render
   const notificationSoundRef = useRef<HTMLAudioElement | null>(null)
